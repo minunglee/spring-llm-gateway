@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>LLM Gateway 체험</title>
+	<link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<main class="container">
+	<header>
+		<h1>LLM Gateway 체험</h1>
+		<p class="lead">질문을 보내면 게이트웨이를 거쳐 AI가 답하고, 토큰·비용·응답시간을 함께 보여줍니다.</p>
+		<div class="badges">
+			<span class="badge" th:classappend="${mode == 'mock'} ? 'badge-mock' : 'badge-live'"
+				  th:text="${mode == 'mock'} ? '가짜 응답 모드 (비용 0원)' : '실제 Claude 호출'">모드</span>
+			<span class="badge" th:text="${model}">모델</span>
+		</div>
+	</header>
+
+	<form id="chat-form" class="card">
+		<label for="message">질문</label>
+		<textarea id="message" name="message" rows="4" maxlength="2000"
+				  placeholder="예: Redis Lua 스크립트가 원자적인 이유를 설명해줘"></textarea>
+		<div class="form-footer">
+			<span id="counter">0 / 2,000</span>
+			<button type="submit" id="submit">보내기</button>
+		</div>
+	</form>
+
+	<section id="result" class="card" hidden>
+		<h2>응답</h2>
+		<p id="answer"></p>
+		<dl class="metrics">
+			<div><dt>입력 토큰</dt><dd id="input-tokens"></dd></div>
+			<div><dt>출력 토큰</dt><dd id="output-tokens"></dd></div>
+			<div><dt>비용</dt><dd id="cost"></dd></div>
+			<div><dt>응답시간</dt><dd id="latency"></dd></div>
+		</dl>
+	</section>
+
+	<p id="error" class="error" role="alert" hidden></p>
+</main>
+<script th:src="@{/app.js}"></script>
+</body>
+</html>

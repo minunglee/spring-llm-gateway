@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: spring-llm-gateway
+  config:
+    # 로컬 비밀값(.env)은 Git에 올리지 않는다. .env.example 참고
+    import: optional:file:.env[.properties]
+  threads:
+    virtual:
+      enabled: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+gateway:
+  llm:
+    # mock: 가짜 응답(비용 0원) / anthropic: 실제 Claude API 호출
+    mode: ${GATEWAY_LLM_MODE:mock}
+    model: claude-haiku-5-5
+    max-tokens: 1024
+    mock-latency: 300ms
+    anthropic-api-key: ${ANTHROPIC_API_KEY:}
+  pricing:
+    # USD / 100만 토큰 (2026-10-06 Anthropic 공식 가격표)
+    models:
+      claude-haiku-5-5:
+        input: 0.10
+        output: 0.50
+      claude-sonnet-5-5:
+        input: 2.00
+        output: 10.00
+      claude-opus-5-5:
+        input: 4.00
+        output: 20.00
