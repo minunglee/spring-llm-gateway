@@ -58,7 +58,7 @@ class InviteController {
 		return inviteService.redeem(request.code())
 			.<ResponseEntity<?>>map(code -> ResponseEntity.ok()
 				.header(HttpHeaders.SET_COOKIE, inviteCookie.issue(code, servletRequest.isSecure()).toString())
-				.body(new RedeemResponse(code.getLabel(), code.getExpiresAt())))
+				.body(new RedeemResponse(code.getExpiresAt())))
 			.orElseGet(() -> ResponseEntity.badRequest()
 				.body(ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "유효하지 않거나 만료된 초대코드입니다.")));
 	}
@@ -73,7 +73,8 @@ class InviteController {
 	record RedeemRequest(@NotBlank(message = "초대코드를 입력해주세요") @Size(max = 40) String code) {
 	}
 
-	record RedeemResponse(String label, Instant expiresAt) {
+	/** 코드 이름(회사명)은 방문자에게 돌려주지 않는다 */
+	record RedeemResponse(Instant expiresAt) {
 	}
 
 }

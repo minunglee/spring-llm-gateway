@@ -10,7 +10,7 @@
 <body>
 <main class="container resume">
 	<a class="back" th:href="@{/}">← 포트폴리오</a>
-	<p class="hint viewer" th:text="|${requester.inviteLabel()} 초대코드로 열람 중입니다.|">초대코드로 열람 중입니다.</p>
+	<p class="hint viewer">초대코드로 열람 중입니다.</p>
 
 	<section th:if="${resume == null}" class="card locked">
 		<h1>이력서 및 경력기술서</h1>
