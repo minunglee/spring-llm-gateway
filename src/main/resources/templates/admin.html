@@ -52,8 +52,12 @@
 		<div class="block-title">
 			<span class="fold-head">
 				<span class="fold-label">USAGE</span>
-				<span class="fold-name">최근 7일 사용량</span>
+				<span class="fold-name">사용량</span>
 			</span>
+			<nav class="range-tabs" aria-label="기간">
+				<a th:each="r : ${d.ranges()}" th:href="@{/admin(range=${r.param()})}" th:text="${r.label()}"
+				   th:classappend="${r == d.range()} ? 'active'">기간</a>
+			</nav>
 		</div>
 		<div class="card block-body table-wrap">
 			<table class="admin-table">
@@ -100,7 +104,7 @@
 				<tbody>
 				<tr th:if="${d.invites().isEmpty()}"><td colspan="9" class="muted">아직 발급한 코드가 없습니다.</td></tr>
 				<tr th:each="i : ${d.invites()}" th:classappend="${i.revoked()} ? 'dim'">
-					<td th:text="${i.label()}">이름</td>
+					<td><a class="table-link" th:href="@{/admin/codes/{id}(id=${i.id()})}" th:text="${i.label()}">이름</a></td>
 					<td th:text="${i.status()}">상태</td>
 					<td th:text="${i.expiresAt()}">만료</td>
 					<td class="num" th:text="${i.redeems()}">0</td>
@@ -121,18 +125,20 @@
 		<div class="block-title">
 			<span class="fold-head">
 				<span class="fold-label">ACCESS LOG</span>
-				<span class="fold-name">최근 열람 기록</span>
+				<span class="fold-name">최근 기록</span>
 			</span>
+			<a class="link-button" th:href="@{/admin/access}">전체 보기 →</a>
 		</div>
 		<div class="card block-body table-wrap">
 			<table class="admin-table">
-				<thead><tr><th>시각</th><th>초대코드</th><th>행동</th></tr></thead>
+				<thead><tr><th>시각</th><th>초대코드</th><th>행동</th><th class="num">비용</th></tr></thead>
 				<tbody>
-				<tr th:if="${d.recentAccess().isEmpty()}"><td colspan="3" class="muted">기록이 없습니다.</td></tr>
-				<tr th:each="a : ${d.recentAccess()}">
+				<tr th:if="${d.recentEvents().isEmpty()}"><td colspan="4" class="muted">기록이 없습니다.</td></tr>
+				<tr th:each="a : ${d.recentEvents()}">
 					<td th:text="${a.at()}">시각</td>
-					<td th:text="${a.label()}">코드</td>
+					<td><a class="table-link" th:href="@{/admin/codes/{id}(id=${a.codeId()})}" th:text="${a.label()}">코드</a></td>
 					<td th:text="${a.action()}">행동</td>
+					<td class="num" th:text="${a.detail()}"></td>
 				</tr>
 				</tbody>
 			</table>

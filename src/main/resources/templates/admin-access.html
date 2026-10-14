@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex, nofollow">
+	<title>전체 기록 | 관리자</title>
+	<link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<main class="container admin" th:with="a=${access}">
+	<div class="admin-top">
+		<a class="back" th:href="@{/admin}">← 대시보드</a>
+	</div>
+
+	<section class="admin-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">ACCESS LOG</span>
+				<span class="fold-name">전체 기록</span>
+			</span>
+			<span class="fold-meta" th:text="|총 ${a.total()}건|">총 0건</span>
+		</div>
+
+		<form class="card block-body filter" method="get" th:action="@{/admin/access}">
+			<label>회사
+				<select name="code">
+					<option value="">전체</option>
+					<option th:each="c : ${a.codes()}" th:value="${c.value()}" th:text="${c.label()}"
+							th:selected="${a.codeId() != null and c.value() == a.codeId().toString()}">회사</option>
+				</select>
+			</label>
+			<label>행동
+				<select name="action">
+					<option value="">전체</option>
+					<option th:each="o : ${a.actions()}" th:value="${o.value()}" th:text="${o.label()}"
+							th:selected="${o.value() == a.action()}">행동</option>
+				</select>
+			</label>
+			<button type="submit">보기</button>
+		</form>
+
+		<div class="card block-body table-wrap">
+			<table class="admin-table">
+				<thead><tr><th>시각</th><th>초대코드</th><th>행동</th><th class="num">비용</th></tr></thead>
+				<tbody>
+				<tr th:if="${a.events().isEmpty()}"><td colspan="4" class="muted">기록이 없습니다.</td></tr>
+				<tr th:each="e : ${a.events()}">
+					<td th:text="${e.at()}">시각</td>
+					<td><a class="table-link" th:href="@{/admin/codes/{id}(id=${e.codeId()})}" th:text="${e.label()}">코드</a></td>
+					<td th:text="${e.action()}">행동</td>
+					<td class="num" th:text="${e.detail()}"></td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<nav class="pager" aria-label="페이지">
+			<a th:if="${a.hasPrevious()}" class="link-button"
+			   th:href="@{/admin/access(code=${a.codeId()},action=${a.action()},page=${a.page() - 1})}">← 이전</a>
+			<span th:text="|${a.page()} / ${a.totalPages()}|">1 / 1</span>
+			<a th:if="${a.hasNext()}" class="link-button"
+			   th:href="@{/admin/access(code=${a.codeId()},action=${a.action()},page=${a.page() + 1})}">다음 →</a>
+		</nav>
+	</section>
+</main>
+</body>
+</html>
