@@ -54,7 +54,7 @@ ANTHROPIC_API_KEY=sk-ant-...
 | 항목 | 내용 |
 | --- | --- |
 | 서버 | 카페24 가상서버 (vCPU 4, RAM 2GB, Ubuntu 24.04) |
-| 주소 | https://gateway.minunglee.cloud |
+| 주소 | https://minunglee.cloud (포트폴리오) · https://minunglee.cloud/gateway (체험) |
 | 구성 | Nginx → Spring Boot, PostgreSQL, Redis (`deploy/compose.prod.yaml`) |
 | HTTPS | Let's Encrypt 인증서, 서버의 certbot이 자동 갱신 (갱신 후 Nginx 자동 재적용) |
 | 메모리 한도 | 앱 768MB(힙 512MB), PostgreSQL 256MB, Redis 64MB, Nginx 32MB |
