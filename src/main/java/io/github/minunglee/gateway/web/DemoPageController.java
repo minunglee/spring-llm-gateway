@@ -19,11 +19,11 @@ class DemoPageController {
 		this.llmProperties = llmProperties;
 	}
 
-	@GetMapping("/")
-	String index(Model model) {
+	@GetMapping("/gateway")
+	String gateway(Model model) {
 		model.addAttribute("mode", llmClient.mode());
 		model.addAttribute("model", llmProperties.model());
-		return "index";
+		return "gateway";
 	}
 
 }

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>이민웅 | 백엔드 개발자 포트폴리오</title>
+	<meta name="description" content="Java/Spring 백엔드 개발자 이민웅의 포트폴리오">
+	<link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<main class="container portal">
+	<header class="hero">
+		<h1>Java/Spring 백엔드 개발자 이민웅</h1>
+		<p class="lead">비용과 장애까지 생각하는 서버를 만듭니다</p>
+	</header>
+
+	<section class="section">
+		<h2 class="section-title">프로필</h2>
+		<a class="tile tile-locked" th:href="@{/resume}">
+			<span class="tile-body">
+				<span class="tile-title">이력서 및 경력기술서</span>
+				<span class="tile-desc">경력, 프로젝트, 기술 스택</span>
+			</span>
+			<span class="tile-tag">초대코드</span>
+		</a>
+	</section>
+
+	<section class="section">
+		<h2 class="section-title">포트폴리오</h2>
+		<a class="tile" th:href="@{/gateway}">
+			<span class="tile-body">
+				<span class="tile-title">LLM Gateway 체험</span>
+				<span class="tile-desc">비용 방어형 Claude API 게이트웨이 · Spring Boot, Redis Lua, 일일 예산, 사용량 제한</span>
+			</span>
+			<span class="tile-arrow" aria-hidden="true">→</span>
+		</a>
+		<div class="tile tile-soon" aria-disabled="true">
+			<span class="tile-body">
+				<span class="tile-title">부동산 문서 분석</span>
+				<span class="tile-desc">계약서·등기부등본 위험 요소 추출</span>
+			</span>
+			<span class="tile-tag">준비 중</span>
+		</div>
+	</section>
+
+	<footer class="footer">
+		<a href="https://github.com/minunglee/spring-llm-gateway" target="_blank" rel="noopener">GitHub</a>
+	</footer>
+</main>
+</body>
+</html>

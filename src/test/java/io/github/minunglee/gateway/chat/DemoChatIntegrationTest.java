@@ -135,7 +135,24 @@ class DemoChatIntegrationTest {
 
 	@Test
 	void 체험_페이지에_현재_모드를_표시한다() throws Exception {
-		mockMvc.perform(get("/")).andExpect(status().isOk()).andExpect(content().string(containsString("가짜 응답 모드")));
+		mockMvc.perform(get("/gateway"))
+			.andExpect(status().isOk())
+			.andExpect(content().string(containsString("가짜 응답 모드")));
+	}
+
+	@Test
+	void 메인_페이지에_프로필과_포트폴리오를_보여준다() throws Exception {
+		mockMvc.perform(get("/"))
+			.andExpect(status().isOk())
+			.andExpect(content().string(containsString("이력서 및 경력기술서")))
+			.andExpect(content().string(containsString("LLM Gateway 체험")));
+	}
+
+	@Test
+	void 이력서는_초대코드_없이는_잠금_안내를_보여준다() throws Exception {
+		mockMvc.perform(get("/resume"))
+			.andExpect(status().isOk())
+			.andExpect(content().string(containsString("초대코드가 있는 분만")));
 	}
 
 	private ResultActions chat(String message, String remoteAddr) throws Exception {
