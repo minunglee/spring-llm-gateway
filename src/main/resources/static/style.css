@@ -532,3 +532,103 @@ a.tile:hover {
 		margin-bottom: 8px;
 	}
 }
+
+/* ---------- 이력서 간격 (읽기 편하도록 넓게) ---------- */
+
+.resume {
+	line-height: 1.75;
+}
+
+.resume .card {
+	margin-bottom: 20px;
+	padding: 32px 28px;
+}
+
+.resume .viewer {
+	margin-bottom: 24px;
+}
+
+.resume-header h1 {
+	margin-bottom: 8px;
+}
+
+.resume .resume-headline {
+	margin-bottom: 24px;
+}
+
+.resume .resume-summary {
+	margin-bottom: 14px;
+}
+
+.resume .resume-contact {
+	gap: 24px;
+	margin: 28px 0;
+}
+
+.resume .resume-section {
+	margin-top: 56px;
+}
+
+.resume .section-title {
+	margin-bottom: 18px;
+}
+
+.resume .chips {
+	gap: 10px;
+}
+
+.resume .project h3 {
+	margin-bottom: 6px;
+}
+
+.resume .chips.small {
+	margin: 20px 0;
+}
+
+.resume .project-section {
+	margin-top: 36px;
+	padding-top: 32px;
+}
+
+.resume .project-section h4 {
+	margin-bottom: 10px;
+}
+
+.resume .item {
+	margin-top: 28px;
+}
+
+.resume .item-title {
+	margin-bottom: 12px;
+}
+
+.resume .problem {
+	margin-bottom: 14px;
+	padding: 14px 16px;
+}
+
+.resume .points li {
+	margin-bottom: 10px;
+}
+
+.resume .timeline {
+	gap: 14px 24px;
+}
+
+@media (max-width: 480px) {
+	.resume .card {
+		padding: 24px 20px;
+	}
+
+	.resume .resume-section {
+		margin-top: 44px;
+	}
+
+	.resume .timeline {
+		gap: 4px;
+	}
+
+	.resume .timeline dd {
+		margin-bottom: 14px;
+	}
+}
