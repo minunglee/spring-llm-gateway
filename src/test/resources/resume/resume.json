@@ -1,0 +1,29 @@
+{
+  "name": "홍길동",
+  "headline": "테스트용 이력서",
+  "summary": ["테스트 요약"],
+  "contact": { "email": "test@example.com", "phone": "010-0000-0000" },
+  "skills": ["Java"],
+  "experience": [{ "company": "테스트 회사", "period": "2024.01 ~ 2025.01", "role": "백엔드" }],
+  "projects": [
+    {
+      "title": "테스트 프로젝트",
+      "period": "2024.01 ~ 2025.01",
+      "org": "테스트 회사",
+      "tags": ["Java"],
+      "overview": "테스트 개요",
+      "sections": [
+        {
+          "title": "테스트 섹션",
+          "items": [
+            { "title": "문제 해결 항목", "problem": "테스트 문제 상황", "points": ["테스트 해결 내용"] },
+            { "points": ["제목 없는 항목"] }
+          ]
+        }
+      ]
+    }
+  ],
+  "education": [{ "period": "2020.03 ~ 2024.02", "name": "테스트 대학교" }],
+  "certificates": [{ "date": "2024.01", "name": "테스트 자격증" }],
+  "training": []
+}

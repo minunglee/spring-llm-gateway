@@ -16,6 +16,10 @@ services:
       GATEWAY_IP_SALT: ${GATEWAY_IP_SALT}
       GATEWAY_ADMIN_TOKEN: ${GATEWAY_ADMIN_TOKEN}
       GATEWAY_COOKIE_SECRET: ${GATEWAY_COOKIE_SECRET}
+      GATEWAY_RESUME_DIR: /app/private
+    volumes:
+      # 이력서 원본은 서버에만 있다 (Git에 없음)
+      - ./private:/app/private:ro
     depends_on:
       postgres:
         condition: service_healthy

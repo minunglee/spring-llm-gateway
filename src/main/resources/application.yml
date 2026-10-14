@@ -46,6 +46,9 @@ gateway:
   admin:
     # 비어 있으면 관리자 API(/admin/**)를 막는다
     token: ${GATEWAY_ADMIN_TOKEN:}
+  resume:
+    # 이력서 원본(resume.json, resume.pdf) 폴더. Git에 올리지 않는다
+    dir: ${GATEWAY_RESUME_DIR:private}
   pricing:
     # USD / 100만 토큰 (2026-10-06 Anthropic 공식 가격표)
     models:
