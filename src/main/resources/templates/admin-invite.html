@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex, nofollow">
+	<title th:text="${detail.invite().label()} + ' · 관리자'">초대코드 상세</title>
+	<link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<main class="container admin" th:with="i=${detail.invite()}">
+	<div class="admin-top">
+		<a class="back" th:href="@{/admin}">← 대시보드</a>
+	</div>
+
+	<section class="admin-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">INVITE</span>
+				<span class="fold-name" th:text="${i.label()}">회사명</span>
+			</span>
+			<span class="fold-meta" th:text="${i.status()}">상태</span>
+		</div>
+		<div class="card block-body">
+			<dl class="info-list">
+				<dt>만료</dt>
+				<dd th:text="${i.expiresAt()}">만료</dd>
+				<dt>하루 AI 한도</dt>
+				<dd th:text="|${i.dailyLimit()}회|">100회</dd>
+				<dt>마지막 접속</dt>
+				<dd th:text="${i.lastAccess()}">-</dd>
+				<dt>누적</dt>
+				<dd th:text="|코드 입력 ${i.redeems()} · 이력서 열람 ${i.resumeViews()} · PDF ${i.pdfDownloads()} · AI 질문 ${i.llmRequests()}|">누적</dd>
+			</dl>
+		</div>
+	</section>
+
+	<section class="admin-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">DAILY</span>
+				<span class="fold-name">날짜별 요약</span>
+			</span>
+		</div>
+		<div class="card block-body table-wrap">
+			<table class="admin-table">
+				<thead>
+				<tr><th>날짜</th><th class="num">코드 입력</th><th class="num">이력서 열람</th><th class="num">PDF</th><th class="num">AI 질문</th></tr>
+				</thead>
+				<tbody>
+				<tr th:if="${detail.days().isEmpty()}"><td colspan="5" class="muted">아직 기록이 없습니다.</td></tr>
+				<tr th:each="day : ${detail.days()}">
+					<td th:text="${day.day()}">날짜</td>
+					<td class="num" th:text="${day.redeems()}">0</td>
+					<td class="num" th:text="${day.resumeViews()}">0</td>
+					<td class="num" th:text="${day.pdfDownloads()}">0</td>
+					<td class="num" th:text="${day.chats()}">0</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<section class="admin-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">TIMELINE</span>
+				<span class="fold-name">전체 기록</span>
+			</span>
+			<span class="fold-meta">최근 500건</span>
+		</div>
+		<div class="card block-body table-wrap">
+			<table class="admin-table">
+				<thead><tr><th>시각</th><th>행동</th><th class="num">비용</th></tr></thead>
+				<tbody>
+				<tr th:if="${detail.events().isEmpty()}"><td colspan="3" class="muted">아직 기록이 없습니다.</td></tr>
+				<tr th:each="e : ${detail.events()}">
+					<td th:text="${e.at()}">시각</td>
+					<td th:text="${e.action()}">행동</td>
+					<td class="num" th:text="${e.detail()}"></td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+</main>
+</body>
+</html>

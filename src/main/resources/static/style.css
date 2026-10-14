@@ -1255,3 +1255,79 @@ a.tile:hover {
 	font-weight: 600;
 	word-break: break-all;
 }
+
+/* ---------- 관리자: 기간 탭, 상세·전체 기록 ---------- */
+
+.range-tabs {
+	display: flex;
+	gap: 6px;
+}
+
+.range-tabs a {
+	padding: 4px 12px;
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	color: var(--muted);
+	font-size: 0.85rem;
+	text-decoration: none;
+}
+
+.range-tabs a.active {
+	border-color: var(--accent);
+	color: var(--accent);
+	font-weight: 600;
+}
+
+.table-link {
+	color: var(--text);
+	text-decoration: underline;
+	text-decoration-color: var(--border);
+	text-underline-offset: 3px;
+}
+
+.table-link:hover {
+	text-decoration-color: var(--accent);
+}
+
+a.link-button {
+	display: inline-block;
+	border-radius: 8px;
+	font-size: 0.85rem;
+	text-decoration: none;
+}
+
+.filter {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: end;
+	gap: 16px;
+}
+
+.filter label {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+	color: var(--muted);
+	font-size: 0.85rem;
+	font-weight: 400;
+}
+
+.filter select {
+	min-width: 160px;
+	padding: 8px 10px;
+	background: var(--bg);
+	color: var(--text);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	font: inherit;
+}
+
+.pager {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 16px;
+	margin-top: 16px;
+	color: var(--muted);
+}

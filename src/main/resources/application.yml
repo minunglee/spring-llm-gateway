@@ -7,6 +7,17 @@ spring:
   threads:
     virtual:
       enabled: true
+  web:
+    resources:
+      # CSS·JS 주소에 내용 해시를 붙여, 배포 후 브라우저에 남은 예전 파일이 쓰이지 않게 한다
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /**
+      cache:
+        cachecontrol:
+          max-age: 365d
   jpa:
     open-in-view: false
     hibernate:
