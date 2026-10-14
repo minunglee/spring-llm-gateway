@@ -45,6 +45,20 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 통합 테스트는 Testcontainers로 실제 PostgreSQL과 Redis를 띄워서 실행합니다.
 
+## 배포
+
+`main`에 머지되면 GitHub Actions가 테스트 → Docker 이미지 빌드(ghcr.io) → SSH로 서버 배포 → 헬스 체크까지 자동으로 진행합니다.
+
+| 항목 | 내용 |
+| --- | --- |
+| 서버 | 카페24 가상서버 (vCPU 4, RAM 2GB, Ubuntu 24.04) |
+| 구성 | Nginx → Spring Boot, PostgreSQL, Redis (`deploy/compose.prod.yaml`) |
+| 메모리 한도 | 앱 768MB(힙 512MB), PostgreSQL 256MB, Redis 64MB, Nginx 32MB |
+| 보안 | SSH 키 로그인만 허용, 배포 전용 계정(sudo 없음), 방화벽 22/80/443, fail2ban, 자동 보안 업데이트 |
+| 비밀값 | DB 비밀번호와 API 키는 서버의 `.env`에만 저장 (Git, GitHub에 없음) |
+
+Docker가 연 포트는 ufw 방화벽을 우회하기 때문에, PostgreSQL과 Redis는 외부 포트를 열지 않고 Docker 내부 네트워크로만 접근합니다.
+
 ## 설계 메모
 
 - **비용은 마이크로달러 정수로 저장**: 단가가 "USD / 100만 토큰"이므로 `토큰 수 × 단가`가 곧 마이크로달러입니다. 부동소수점 오차가 없고, 예산이 실제보다 작게 잡히지 않도록 올림합니다.
