@@ -17,3 +17,68 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
       # 통합 테스트는 Testcontainers로 실제 PostgreSQL·Redis를 띄워 실행한다
       - run: ./gradlew build
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push'
+        with:
+          name: app-jar
+          path: build/libs/spring-llm-gateway-*-SNAPSHOT.jar
+          retention-days: 1
+
+  # main에 머지되면 이미지를 만들어 서버에 배포한다
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency: production
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/minunglee/spring-llm-gateway
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: build/libs
+
+      - name: 이미지 빌드 및 푸시
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker build -t $IMAGE:${{ github.sha }} -t $IMAGE:latest .
+          docker push $IMAGE:${{ github.sha }}
+          docker push $IMAGE:latest
+
+      - name: SSH 접속 준비
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo "${{ secrets.SERVER_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: 서버 배포
+        env:
+          TARGET: ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}
+        run: |
+          scp -i ~/.ssh/deploy_key deploy/compose.prod.yaml deploy/nginx.conf $TARGET:app/
+          ssh -i ~/.ssh/deploy_key $TARGET bash -s <<EOF
+            set -e
+            cd ~/app
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            export IMAGE_TAG=${{ github.sha }}
+            docker compose -f compose.prod.yaml pull --quiet
+            docker compose -f compose.prod.yaml up -d --remove-orphans
+            docker logout ghcr.io
+            docker image prune -f
+          EOF
+
+      - name: 헬스 체크
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://${{ secrets.SERVER_HOST }}/actuator/health | grep -q UP; then
+              echo "배포 성공"; exit 0
+            fi
+            sleep 5
+          done
+          echo "헬스 체크 실패"; exit 1

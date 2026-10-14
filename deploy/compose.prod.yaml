@@ -1,0 +1,60 @@
+# 운영 서버(2GB)용 구성. 비밀값은 서버의 /home/deploy/app/.env 에만 있다.
+# 외부에 여는 포트는 Nginx(80)뿐이다. Docker가 연 포트는 ufw 방화벽을 우회하므로
+# PostgreSQL과 Redis는 ports를 절대 열지 않는다.
+services:
+  app:
+    image: ghcr.io/minunglee/spring-llm-gateway:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gateway
+      SPRING_DATASOURCE_USERNAME: gateway
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATA_REDIS_HOST: redis
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      GATEWAY_LLM_MODE: ${GATEWAY_LLM_MODE:-mock}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    mem_limit: 768m
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=30"]
+    environment:
+      POSTGRES_DB: gateway
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gateway -d gateway"]
+      interval: 5s
+      retries: 10
+    mem_limit: 256m
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--maxmemory", "48mb", "--maxmemory-policy", "volatile-lru", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    mem_limit: 64m
+
+  nginx:
+    image: nginx:1.29-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    mem_limit: 32m
+
+volumes:
+  postgres-data:
+  redis-data:
