@@ -8,14 +8,19 @@
 	<link rel="stylesheet" th:href="@{/style.css}">
 </head>
 <body>
-<main class="container portal">
+<main class="container portal page">
 	<header class="hero">
 		<h1>Java/Spring 백엔드 개발자 이민웅</h1>
 		<p class="lead">비용과 장애까지 생각하는 서버를 만듭니다</p>
 	</header>
 
-	<section class="section">
-		<h2 class="section-title">프로필</h2>
+	<section class="page-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">PROFILE</span>
+				<span class="fold-name">프로필</span>
+			</span>
+		</div>
 		<a class="tile" th:classappend="${requester.invited()} ? '' : 'tile-locked'" th:href="@{/resume}">
 			<span class="tile-body">
 				<span class="tile-title">이력서 및 경력기술서</span>
@@ -25,8 +30,13 @@
 		</a>
 	</section>
 
-	<section class="section">
-		<h2 class="section-title">포트폴리오</h2>
+	<section class="page-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">PORTFOLIO</span>
+				<span class="fold-name">포트폴리오</span>
+			</span>
+		</div>
 		<a class="tile" th:href="@{/gateway}">
 			<span class="tile-body">
 				<span class="tile-title">LLM Gateway 체험</span>
@@ -43,7 +53,15 @@
 		</div>
 	</section>
 
-	<section th:replace="~{fragments :: invite(${requester})}"></section>
+	<section class="page-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">INVITE</span>
+				<span class="fold-name">초대코드</span>
+			</span>
+		</div>
+		<section th:replace="~{fragments :: invite(${requester})}"></section>
+	</section>
 
 	<footer class="footer">
 		<a href="https://github.com/minunglee/spring-llm-gateway" target="_blank" rel="noopener">GitHub</a>

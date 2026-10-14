@@ -1121,3 +1121,137 @@ a.tile:hover {
 		padding: 20px;
 	}
 }
+
+/* ---------- 공통 제목 바 (메인·관리자 페이지에도 이력서와 같은 형식) ---------- */
+
+.page .block-title,
+.admin .block-title,
+.admin-login .block-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 16px;
+	padding: 16px 20px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-left: 4px solid var(--accent);
+	border-radius: 10px;
+}
+
+.page .fold-name,
+.admin .fold-name,
+.admin-login .fold-name {
+	font-size: 1.25rem;
+	font-weight: 700;
+}
+
+.page .fold-label,
+.admin .fold-label,
+.admin-login .fold-label {
+	font-size: 0.72rem;
+	letter-spacing: 0.1em;
+}
+
+.page-section {
+	margin-bottom: 48px;
+}
+
+.page .invite {
+	margin-bottom: 0;
+}
+
+/* ---------- 관리자 대시보드 ---------- */
+
+.admin {
+	max-width: 960px;
+}
+
+.admin-login {
+	max-width: 480px;
+	padding-top: 80px;
+}
+
+.admin-top {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
+}
+
+.admin-section {
+	margin-top: 40px;
+}
+
+.admin .block-body {
+	padding: 20px 24px;
+	margin-bottom: 12px;
+}
+
+.table-wrap {
+	overflow-x: auto;
+}
+
+.admin-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.9rem;
+	white-space: nowrap;
+}
+
+.admin-table th {
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--border);
+	color: var(--muted);
+	font-weight: 600;
+	text-align: left;
+}
+
+.admin-table td {
+	padding: 10px;
+	border-bottom: 1px solid var(--border);
+}
+
+.admin-table tr:last-child td {
+	border-bottom: 0;
+}
+
+.admin-table .num {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+.admin-table .bar-col {
+	width: 30%;
+	min-width: 120px;
+}
+
+.admin-table .bar {
+	margin: 0;
+}
+
+.admin-table .dim td {
+	opacity: 0.5;
+}
+
+.admin .info-list dd .bar {
+	margin: 6px 0 0;
+}
+
+.danger {
+	color: var(--error);
+}
+
+.narrow {
+	flex: 0 0 80px !important;
+}
+
+.created {
+	margin: 8px 0 0;
+	padding: 12px;
+	background: var(--bg);
+	border: 1px dashed var(--accent);
+	border-radius: 8px;
+	font-weight: 600;
+	word-break: break-all;
+}

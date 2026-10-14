@@ -5,11 +5,11 @@
 <!-- 초대코드 입력·상태 (메인, 체험 페이지 공통) -->
 <section class="card invite" th:fragment="invite(requester)">
 	<div th:if="${requester.invited()}" class="invite-active">
-		<span>초대코드 사용 중 · <strong th:text="${requester.inviteLabel()}">회사</strong></span>
+		<span><strong>초대코드 사용 중</strong> · 이력서 열람과 확장 체험이 가능합니다</span>
 		<button type="button" id="invite-clear" class="link-button">해제</button>
 	</div>
 	<form th:unless="${requester.invited()}" id="invite-form">
-		<label for="invite-code">초대코드</label>
+		<label for="invite-code">초대코드 입력</label>
 		<div class="invite-row">
 			<input id="invite-code" name="code" maxlength="40" autocomplete="off" spellcheck="false"
 				   placeholder="XXXX-XXXX-XXXX">

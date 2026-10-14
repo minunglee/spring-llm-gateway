@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -70,7 +71,9 @@ class InviteIntegrationTest {
 		String code = createInvite("B사", 100);
 
 		postRedeem(code.replace("-", "").toLowerCase(), "10.1.0.3").andExpect(status().isOk())
-			.andExpect(jsonPath("$.label").value("B사"));
+			.andExpect(jsonPath("$.expiresAt").exists())
+			// 코드 이름(회사명)은 방문자에게 돌려주지 않는다
+			.andExpect(jsonPath("$.label").doesNotExist());
 	}
 
 	@Test
@@ -125,7 +128,8 @@ class InviteIntegrationTest {
 		Cookie invite = redeem(createInvite("F사", 100), "10.1.0.10");
 		mockMvc.perform(get("/resume").cookie(invite))
 			.andExpect(status().isOk())
-			.andExpect(content().string(containsString("F사 초대코드로 열람 중")))
+			.andExpect(content().string(containsString("초대코드로 열람 중")))
+			.andExpect(content().string(not(containsString("F사"))))
 			.andExpect(content().string(containsString("홍길동")))
 			.andExpect(content().string(containsString("테스트 문제 상황")))
 			.andExpect(content().string(containsString("테스트 자기소개 문단")));
@@ -152,8 +156,12 @@ class InviteIntegrationTest {
 	void 메인과_체험_페이지에_등급을_표시한다() throws Exception {
 		Cookie invite = redeem(createInvite("G사", 100), "10.1.0.11");
 
-		mockMvc.perform(get("/").cookie(invite)).andExpect(content().string(containsString("초대코드 사용 중")));
-		mockMvc.perform(get("/gateway").cookie(invite)).andExpect(content().string(containsString("초대코드 · G사")));
+		mockMvc.perform(get("/").cookie(invite))
+			.andExpect(content().string(containsString("초대코드 사용 중")))
+			.andExpect(content().string(not(containsString("G사"))));
+		mockMvc.perform(get("/gateway").cookie(invite))
+			.andExpect(content().string(containsString("claude-sonnet-5-5")))
+			.andExpect(content().string(not(containsString("G사"))));
 		mockMvc.perform(get("/gateway")).andExpect(content().string(containsString("게스트")));
 	}
 

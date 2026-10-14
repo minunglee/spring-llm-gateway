@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex, nofollow">
+	<title>관리자 대시보드</title>
+	<link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<main class="container admin" th:with="d=${dashboard}">
+	<div class="admin-top">
+		<a class="back" th:href="@{/}">← 포트폴리오</a>
+		<form method="post" th:action="@{/admin/logout}">
+			<button type="submit" class="link-button">로그아웃</button>
+		</form>
+	</div>
+
+	<!-- 운영 상태 -->
+	<section class="admin-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">STATUS</span>
+				<span class="fold-name">오늘 운영 상태</span>
+			</span>
+		</div>
+		<div class="card block-body">
+			<dl class="info-list">
+				<dt>LLM 모드</dt>
+				<dd th:text="${d.llmMode() == 'mock'} ? '가짜 응답 (비용 0원)' : '실제 Claude 호출'">모드</dd>
+				<dt>긴급 차단</dt>
+				<dd class="row-between">
+					<strong th:text="${d.killSwitch()} ? '켜짐 (AI 호출 중단)' : '꺼짐'"
+							th:classappend="${d.killSwitch()} ? 'danger'">상태</strong>
+					<button type="button" class="link-button" id="killswitch-toggle"
+							th:attr="data-enabled=${d.killSwitch()}"
+							th:text="${d.killSwitch()} ? '차단 해제' : '긴급 차단'">전환</button>
+				</dd>
+				<th:block th:each="b : ${d.budgets()}">
+					<dt th:text="|${b.tier()} 예산|">예산</dt>
+					<dd>
+						<span th:text="|${b.used()} / ${b.limit()}|">사용</span>
+						<div class="bar"><div class="bar-fill" th:style="|width: ${b.usedPercent()}%|"></div></div>
+					</dd>
+				</th:block>
+			</dl>
+		</div>
+	</section>
+
+	<!-- 최근 7일 -->
+	<section class="admin-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">USAGE</span>
+				<span class="fold-name">최근 7일 사용량</span>
+			</span>
+		</div>
+		<div class="card block-body table-wrap">
+			<table class="admin-table">
+				<thead>
+				<tr><th>날짜</th><th>요청</th><th>초대코드</th><th>차단·실패</th><th>비용</th><th class="bar-col"></th></tr>
+				</thead>
+				<tbody>
+				<tr th:each="s : ${d.daily()}">
+					<td th:text="${s.day()}">날짜</td>
+					<td class="num" th:text="${s.requests()}">0</td>
+					<td class="num" th:text="${s.inviteRequests()}">0</td>
+					<td class="num" th:text="${s.notSuccess()}">0</td>
+					<td class="num" th:text="${s.cost()}">$0</td>
+					<td class="bar-col"><div class="bar"><div class="bar-fill" th:style="|width: ${s.barPercent()}%|"></div></div></td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<!-- 초대코드 -->
+	<section class="admin-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">INVITES</span>
+				<span class="fold-name">초대코드 현황</span>
+			</span>
+		</div>
+		<form id="invite-create" class="card block-body invite-create">
+			<label for="invite-label">새 초대코드 (회사명)</label>
+			<div class="invite-row">
+				<input id="invite-label" maxlength="100" placeholder="예: A사 백엔드" required>
+				<input id="invite-days" type="number" min="1" max="180" value="30" title="유효 일수" class="narrow">
+				<button type="submit">발급</button>
+			</div>
+			<p class="hint">유효 일수 기본 30일, 하루 100회. 발급된 코드는 이 화면에서 한 번만 보입니다.</p>
+			<p id="invite-created" class="created" hidden></p>
+		</form>
+		<div class="card block-body table-wrap">
+			<table class="admin-table">
+				<thead>
+				<tr><th>이름</th><th>상태</th><th>만료</th><th>입력</th><th>이력서</th><th>PDF</th><th>AI 사용</th><th>마지막 접속</th><th></th></tr>
+				</thead>
+				<tbody>
+				<tr th:if="${d.invites().isEmpty()}"><td colspan="9" class="muted">아직 발급한 코드가 없습니다.</td></tr>
+				<tr th:each="i : ${d.invites()}" th:classappend="${i.revoked()} ? 'dim'">
+					<td th:text="${i.label()}">이름</td>
+					<td th:text="${i.status()}">상태</td>
+					<td th:text="${i.expiresAt()}">만료</td>
+					<td class="num" th:text="${i.redeems()}">0</td>
+					<td class="num" th:text="${i.resumeViews()}">0</td>
+					<td class="num" th:text="${i.pdfDownloads()}">0</td>
+					<td class="num" th:text="${i.llmRequests()}">0</td>
+					<td th:text="${i.lastAccess()}">-</td>
+					<td><button th:unless="${i.revoked()}" type="button" class="link-button revoke"
+								th:attr="data-id=${i.id()},data-label=${i.label()}">폐기</button></td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
+	<!-- 최근 열람 기록 -->
+	<section class="admin-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">ACCESS LOG</span>
+				<span class="fold-name">최근 열람 기록</span>
+			</span>
+		</div>
+		<div class="card block-body table-wrap">
+			<table class="admin-table">
+				<thead><tr><th>시각</th><th>초대코드</th><th>행동</th></tr></thead>
+				<tbody>
+				<tr th:if="${d.recentAccess().isEmpty()}"><td colspan="3" class="muted">기록이 없습니다.</td></tr>
+				<tr th:each="a : ${d.recentAccess()}">
+					<td th:text="${a.at()}">시각</td>
+					<td th:text="${a.label()}">코드</td>
+					<td th:text="${a.action()}">행동</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+</main>
+<script th:src="@{/admin.js}"></script>
+</body>
+</html>
