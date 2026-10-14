@@ -993,3 +993,131 @@ a.tile:hover {
 		font-size: 1.3rem;
 	}
 }
+
+/* ---------- 이력서 공통 형식: 모든 영역에 같은 제목 바 (차분하게) ---------- */
+
+.resume .block-title,
+.resume .fold-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 16px;
+	padding: 16px 20px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-left: 4px solid var(--accent);
+	border-radius: 10px;
+}
+
+.resume .fold-name {
+	font-size: 1.25rem;
+	font-weight: 700;
+}
+
+.resume .fold-label {
+	font-size: 0.72rem;
+	letter-spacing: 0.1em;
+}
+
+.resume .resume-section {
+	margin-top: 48px;
+}
+
+.resume .block-body {
+	margin-bottom: 0;
+	padding: 24px 24px;
+}
+
+.profile-name {
+	margin: 0;
+	font-size: 1.6rem;
+	font-weight: 700;
+}
+
+.resume .resume-headline {
+	margin: 2px 0 20px;
+}
+
+/* 항목명 : 값 목록 (기본 정보, 경력, 학력) */
+.info-list {
+	display: grid;
+	grid-template-columns: 8.5em 1fr;
+	gap: 12px 20px;
+	margin: 0;
+}
+
+.info-list dt {
+	color: var(--muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.info-list dd {
+	margin: 0;
+}
+
+.info-list a {
+	color: var(--text);
+}
+
+.info-list .resume-summary {
+	margin: 0 0 8px;
+	color: var(--text-soft);
+}
+
+.info-list .resume-summary:last-child {
+	margin-bottom: 0;
+}
+
+.group-title {
+	margin: 24px 0 10px;
+	color: var(--accent);
+	font-size: 0.85rem;
+	font-weight: 700;
+}
+
+.group-title:first-child {
+	margin-top: 0;
+}
+
+.button.small {
+	padding: 6px 14px;
+	font-size: 0.85rem;
+}
+
+.side-project {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	color: var(--text);
+	text-decoration: none;
+}
+
+.side-project:hover {
+	border-color: var(--accent);
+}
+
+/* 프로젝트 색은 은은하게 */
+.resume .project {
+	border-left-width: 4px;
+}
+
+.project-head {
+	background: color-mix(in srgb, var(--project) 6%, transparent);
+}
+
+@media (max-width: 480px) {
+	.info-list {
+		grid-template-columns: 1fr;
+		gap: 2px;
+	}
+
+	.info-list dd {
+		margin-bottom: 12px;
+	}
+
+	.resume .block-body {
+		padding: 20px;
+	}
+}

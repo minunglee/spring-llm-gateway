@@ -18,38 +18,103 @@
 	</section>
 
 	<th:block th:if="${resume != null}">
-		<header class="card resume-header">
-			<h1 th:text="${resume.name()}">이름</h1>
-			<p class="resume-headline" th:text="${resume.headline()}">한 줄 소개</p>
-			<p th:each="line : ${resume.summary()}" th:text="${line}" class="resume-summary">소개</p>
-			<div class="resume-contact">
-				<a th:href="|mailto:${resume.contact().email()}|" th:text="${resume.contact().email()}">이메일</a>
-				<a th:href="|tel:${resume.contact().phone()}|" th:text="${resume.contact().phone()}">전화</a>
+		<section class="resume-section">
+			<div class="block-title">
+				<span class="fold-head">
+					<span class="fold-label">PROFILE</span>
+					<span class="fold-name">기본 정보</span>
+				</span>
+				<a th:if="${hasPdf}" class="button small" th:href="@{/resume/pdf}">PDF 다운로드</a>
 			</div>
-			<a th:if="${hasPdf}" class="button" th:href="@{/resume/pdf}">PDF 다운로드</a>
-		</header>
-
-		<section class="resume-section">
-			<h2 class="section-title">기술 스택</h2>
-			<ul class="chips">
-				<li th:each="skill : ${resume.skills()}" th:text="${skill}">기술</li>
-			</ul>
-		</section>
-
-		<section class="resume-section">
-			<h2 class="section-title">경력</h2>
-			<div class="card" th:each="job : ${resume.experience()}">
-				<div class="row-between">
-					<strong th:text="${job.company()}">회사</strong>
-					<span class="muted" th:text="${job.period()}">기간</span>
-				</div>
-				<p class="muted" th:text="${job.role()}">담당</p>
+			<div class="card block-body">
+				<p class="profile-name" th:text="${resume.name()}">이름</p>
+				<p class="resume-headline" th:text="${resume.headline()}">한 줄 소개</p>
+				<dl class="info-list">
+					<dt>이메일</dt>
+					<dd><a th:href="|mailto:${resume.contact().email()}|" th:text="${resume.contact().email()}">이메일</a></dd>
+					<dt>연락처</dt>
+					<dd><a th:href="|tel:${resume.contact().phone()}|" th:text="${resume.contact().phone()}">전화</a></dd>
+					<dt>소개</dt>
+					<dd>
+						<p th:each="line : ${resume.summary()}" th:text="${line}" class="resume-summary">소개</p>
+					</dd>
+				</dl>
 			</div>
 		</section>
 
 		<section class="resume-section">
-			<h2 class="section-title">개인 프로젝트</h2>
-			<a class="tile" th:href="@{/gateway}">
+			<div class="block-title">
+				<span class="fold-head">
+					<span class="fold-label">SKILLS</span>
+					<span class="fold-name">기술 스택</span>
+				</span>
+			</div>
+			<div class="card block-body">
+				<ul class="chips">
+					<li th:each="skill : ${resume.skills()}" th:text="${skill}">기술</li>
+				</ul>
+			</div>
+		</section>
+
+		<section class="resume-section">
+			<div class="block-title">
+				<span class="fold-head">
+					<span class="fold-label">EXPERIENCE</span>
+					<span class="fold-name">경력</span>
+				</span>
+			</div>
+			<div class="card block-body">
+				<dl class="info-list">
+					<th:block th:each="job : ${resume.experience()}">
+						<dt th:text="${job.period()}">기간</dt>
+						<dd><strong th:text="${job.company()}">회사</strong> · <span th:text="${job.role()}">담당</span></dd>
+					</th:block>
+				</dl>
+			</div>
+		</section>
+
+		<section class="resume-section">
+			<div class="block-title">
+				<span class="fold-head">
+					<span class="fold-label">EDUCATION</span>
+					<span class="fold-name">학력 · 자격증 · 교육</span>
+				</span>
+			</div>
+			<div class="card block-body">
+				<p class="group-title">학력</p>
+				<dl class="info-list">
+					<th:block th:each="entry : ${resume.education()}">
+						<dt th:text="${entry.period()}">기간</dt>
+						<dd th:text="${entry.name()}">학력</dd>
+					</th:block>
+				</dl>
+				<p class="group-title">자격증</p>
+				<dl class="info-list">
+					<th:block th:each="cert : ${resume.certificates()}">
+						<dt th:text="${cert.date()}">취득일</dt>
+						<dd th:text="${cert.name()}">자격증</dd>
+					</th:block>
+				</dl>
+				<th:block th:if="${resume.training() != null and !resume.training().isEmpty()}">
+					<p class="group-title">교육</p>
+					<dl class="info-list">
+						<th:block th:each="entry : ${resume.training()}">
+							<dt th:text="${entry.period()}">기간</dt>
+							<dd th:text="${entry.name()}">교육</dd>
+						</th:block>
+					</dl>
+				</th:block>
+			</div>
+		</section>
+
+		<section class="resume-section">
+			<div class="block-title">
+				<span class="fold-head">
+					<span class="fold-label">SIDE PROJECT</span>
+					<span class="fold-name">개인 프로젝트</span>
+				</span>
+			</div>
+			<a class="card block-body side-project" th:href="@{/gateway}">
 				<span class="tile-body">
 					<span class="tile-title">LLM Gateway</span>
 					<span class="tile-desc">비용 방어형 Claude API 게이트웨이 · 지금 보고 계신 이 사이트를 운영하는 서버</span>
@@ -58,25 +123,6 @@
 			</a>
 		</section>
 
-		<section class="resume-section">
-			<h2 class="section-title">학력 · 자격증 · 교육</h2>
-			<div class="card">
-				<dl class="timeline">
-					<th:block th:each="entry : ${resume.education()}">
-						<dt th:text="${entry.period()}">기간</dt>
-						<dd th:text="${entry.name()}">학력</dd>
-					</th:block>
-					<th:block th:each="cert : ${resume.certificates()}">
-						<dt th:text="${cert.date()}">취득일</dt>
-						<dd th:text="${cert.name()}">자격증</dd>
-					</th:block>
-					<th:block th:each="entry : ${resume.training()}">
-						<dt th:text="${entry.period()}">기간</dt>
-						<dd th:text="${entry.name()}">교육</dd>
-					</th:block>
-				</dl>
-			</div>
-		</section>
 		<details class="resume-section fold" open>
 			<summary class="fold-title">
 				<span class="fold-head">
