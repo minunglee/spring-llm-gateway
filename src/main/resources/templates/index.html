@@ -18,6 +18,15 @@
 		</div>
 	</header>
 
+	<section class="card budget" aria-label="오늘 전체 예산">
+		<div class="budget-head">
+			<span>오늘 전체 AI 예산</span>
+			<span id="budget-text">-</span>
+		</div>
+		<div class="bar"><div id="budget-bar" class="bar-fill" style="width: 0%"></div></div>
+		<p class="hint">한 사람당 시간당 5회, 하루 20회까지 사용할 수 있고, 예산이 소진되면 데모 응답으로 바뀝니다.</p>
+	</section>
+
 	<form id="chat-form" class="card">
 		<label for="message">질문</label>
 		<textarea id="message" name="message" rows="4" maxlength="2000"
@@ -37,6 +46,7 @@
 			<div><dt>비용</dt><dd id="cost"></dd></div>
 			<div><dt>응답시간</dt><dd id="latency"></dd></div>
 		</dl>
+		<p id="remaining" class="hint"></p>
 	</section>
 
 	<p id="error" class="error" role="alert" hidden></p>
