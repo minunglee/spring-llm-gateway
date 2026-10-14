@@ -76,7 +76,7 @@ jobs:
       - name: 헬스 체크
         run: |
           for i in $(seq 1 30); do
-            if curl -fsS http://${{ secrets.SERVER_HOST }}/actuator/health | grep -q UP; then
+            if curl -fsS https://gateway.minunglee.cloud/actuator/health | grep -q UP; then
               echo "배포 성공"; exit 0
             fi
             sleep 5
