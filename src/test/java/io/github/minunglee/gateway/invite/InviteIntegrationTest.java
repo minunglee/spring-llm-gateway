@@ -127,7 +127,8 @@ class InviteIntegrationTest {
 			.andExpect(status().isOk())
 			.andExpect(content().string(containsString("F사 초대코드로 열람 중")))
 			.andExpect(content().string(containsString("홍길동")))
-			.andExpect(content().string(containsString("테스트 문제 상황")));
+			.andExpect(content().string(containsString("테스트 문제 상황")))
+			.andExpect(content().string(containsString("테스트 자기소개 문단")));
 		mockMvc.perform(get("/resume/pdf").cookie(invite))
 			.andExpect(status().isOk())
 			.andExpect(header().string("Content-Type", "application/pdf"))

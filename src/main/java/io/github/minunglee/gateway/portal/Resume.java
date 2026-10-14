@@ -7,7 +7,7 @@ import java.util.List;
  */
 public record Resume(String name, String headline, List<String> summary, Contact contact, List<String> skills,
 		List<Experience> experience, List<Project> projects, List<Entry> education, List<Certificate> certificates,
-		List<Entry> training) {
+		List<Entry> training, List<CoverLetter> coverLetter) {
 
 	public record Contact(String email, String phone) {
 	}
@@ -30,6 +30,10 @@ public record Resume(String name, String headline, List<String> summary, Contact
 	}
 
 	public record Certificate(String date, String name) {
+	}
+
+	/** 자기소개서 항목 (소제목 + 문단) */
+	public record CoverLetter(String title, List<String> paragraphs) {
 	}
 
 }
