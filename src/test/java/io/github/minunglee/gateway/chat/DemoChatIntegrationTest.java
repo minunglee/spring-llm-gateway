@@ -2,6 +2,7 @@ package io.github.minunglee.gateway.chat;
 
 import io.github.minunglee.gateway.TestcontainersConfiguration;
 import io.github.minunglee.gateway.limit.BudgetGuard;
+import io.github.minunglee.gateway.limit.Tier;
 import io.github.minunglee.gateway.log.RequestLog;
 import io.github.minunglee.gateway.log.RequestLogRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,7 +65,7 @@ class DemoChatIntegrationTest {
 			assertThat(log.getCostMicroUsd()).isPositive();
 		});
 		// 선차감 후 실제 비용으로 정산되어, 예산 사용액 = 기록된 비용
-		assertThat(budgetGuard.usedTodayMicroUsd())
+		assertThat(budgetGuard.usedTodayMicroUsd(Tier.GUEST))
 			.isEqualTo(requestLogRepository.findAll().getFirst().getCostMicroUsd());
 	}
 
@@ -84,7 +85,7 @@ class DemoChatIntegrationTest {
 
 	@Test
 	void 예산이_소진되면_LLM을_호출하지_않고_데모_응답을_준다() throws Exception {
-		budgetGuard.reserve(budgetGuard.limitMicroUsd()).orElseThrow();
+		budgetGuard.reserve(Tier.GUEST, budgetGuard.limitMicroUsd(Tier.GUEST)).orElseThrow();
 
 		chat("질문", "10.0.0.4").andExpect(status().isOk())
 			.andExpect(jsonPath("$.mode").value("demo"))
@@ -116,7 +117,7 @@ class DemoChatIntegrationTest {
 	void 오늘_예산_사용_현황을_보여준다() throws Exception {
 		chat("질문", "10.0.0.6");
 
-		mockMvc.perform(get("/demo/budget")).andExpect(status().isOk()).andExpect(jsonPath("$.limit").value("$1"));
+		mockMvc.perform(get("/demo/budget")).andExpect(status().isOk()).andExpect(jsonPath("$.limit").value("$0.5"));
 	}
 
 	@Test

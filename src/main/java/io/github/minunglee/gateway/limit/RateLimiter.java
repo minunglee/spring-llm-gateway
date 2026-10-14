@@ -39,13 +39,18 @@ public class RateLimiter {
 		this.clock = clock;
 	}
 
-	public RateLimitResult tryAcquire(String clientKey) {
+	/**
+	 * @param key 사용량을 세는 키. 용도가 다른 제한(LLM 호출, 초대코드 입력 시도)은 접두어로 구분한다
+	 * @param hourly 시간당 한도 (토큰 버킷 용량)
+	 * @param daily 하루 한도
+	 */
+	public RateLimitResult tryAcquire(String key, int hourly, int daily) {
 		LocalDate today = LocalDate.now(clock.withZone(properties.zone()));
-		List<String> keys = List.of("rl:bucket:" + clientKey, "rl:day:" + clientKey + ":" + today);
+		List<String> keys = List.of("rl:bucket:" + key, "rl:day:" + key + ":" + today);
 		@SuppressWarnings("unchecked")
-		List<Long> result = redis.execute(script, keys, String.valueOf(properties.hourlyPerIp()),
-				String.valueOf(REFILL_PERIOD.toMillis()), String.valueOf(clock.millis()),
-				String.valueOf(properties.dailyPerIp()), String.valueOf(DAILY_KEY_TTL.toSeconds()));
+		List<Long> result = redis.execute(script, keys, String.valueOf(hourly),
+				String.valueOf(REFILL_PERIOD.toMillis()), String.valueOf(clock.millis()), String.valueOf(daily),
+				String.valueOf(DAILY_KEY_TTL.toSeconds()));
 
 		boolean allowed = result.get(0) == 1;
 		long retryAfterMs = result.get(3);

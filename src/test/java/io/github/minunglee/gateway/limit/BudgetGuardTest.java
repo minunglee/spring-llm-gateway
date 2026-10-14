@@ -37,8 +37,8 @@ class BudgetGuardTest {
 	void setUp() {
 		redis.getConnectionFactory().getConnection().serverCommands().flushAll();
 		// 일일 예산 $0.001 = 1,000 마이크로달러
-		LimitProperties properties = new LimitProperties(5, 20, new BigDecimal("0.001"), "salt",
-				ZoneId.of("Asia/Seoul"));
+		LimitProperties.TierPolicy policy = new LimitProperties.TierPolicy("model", 5, 20, new BigDecimal("0.001"));
+		LimitProperties properties = new LimitProperties("salt", ZoneId.of("Asia/Seoul"), policy, policy);
 		budgetGuard = new BudgetGuard(redis, properties, clock);
 	}
 
@@ -51,7 +51,7 @@ class BudgetGuardTest {
 			for (int i = 0; i < threads; i++) {
 				results.add(executor.submit(() -> {
 					start.await();
-					return budgetGuard.reserve(100);
+					return budgetGuard.reserve(Tier.GUEST, 100);
 				}));
 			}
 			start.countDown();
@@ -65,30 +65,38 @@ class BudgetGuardTest {
 		}
 		// 1,000 / 100 = 정확히 10건만 통과
 		assertThat(granted).isEqualTo(10);
-		assertThat(budgetGuard.usedTodayMicroUsd()).isEqualTo(1_000);
+		assertThat(budgetGuard.usedTodayMicroUsd(Tier.GUEST)).isEqualTo(1_000);
 	}
 
 	@Test
 	void 실제_비용으로_정산하면_차액이_돌아온다() {
-		BudgetGuard.Reservation reservation = budgetGuard.reserve(700).orElseThrow();
+		BudgetGuard.Reservation reservation = budgetGuard.reserve(Tier.GUEST, 700).orElseThrow();
 		budgetGuard.settle(reservation, 30);
 
-		assertThat(budgetGuard.usedTodayMicroUsd()).isEqualTo(30);
-		assertThat(budgetGuard.reserve(900)).isPresent();
+		assertThat(budgetGuard.usedTodayMicroUsd(Tier.GUEST)).isEqualTo(30);
+		assertThat(budgetGuard.reserve(Tier.GUEST, 900)).isPresent();
 	}
 
 	@Test
 	void 호출이_실패하면_전액_돌려준다() {
-		BudgetGuard.Reservation reservation = budgetGuard.reserve(700).orElseThrow();
+		BudgetGuard.Reservation reservation = budgetGuard.reserve(Tier.GUEST, 700).orElseThrow();
 		budgetGuard.refund(reservation);
 
-		assertThat(budgetGuard.usedTodayMicroUsd()).isZero();
+		assertThat(budgetGuard.usedTodayMicroUsd(Tier.GUEST)).isZero();
+	}
+
+	@Test
+	void 등급마다_예산을_따로_센다() {
+		budgetGuard.reserve(Tier.GUEST, 1_000).orElseThrow();
+
+		assertThat(budgetGuard.reserve(Tier.GUEST, 1)).isEmpty();
+		assertThat(budgetGuard.reserve(Tier.INVITE, 1_000)).isPresent();
 	}
 
 	@Test
 	void 한도를_넘는_선차감은_거부한다() {
-		assertThat(budgetGuard.reserve(1_001)).isEmpty();
-		assertThat(budgetGuard.usedTodayMicroUsd()).isZero();
+		assertThat(budgetGuard.reserve(Tier.GUEST, 1_001)).isEmpty();
+		assertThat(budgetGuard.usedTodayMicroUsd(Tier.GUEST)).isZero();
 	}
 
 }

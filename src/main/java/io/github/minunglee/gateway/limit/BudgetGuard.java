@@ -12,11 +12,13 @@ import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 /**
- * 서비스 전체 일일 예산.
+ * 등급별 일일 예산.
  * <p>
  * 응답이 오기 전에는 실제 비용을 모르므로, 호출 전에 <b>나올 수 있는 최대 비용</b>을 먼저 차감(reserve)하고
  * 응답의 실제 사용량으로 차액을 돌려준다(settle). 호출이 실패하면 전액 돌려준다(refund).
  * 이렇게 하면 동시에 수백 건이 들어와도 예산을 넘는 호출은 시작조차 되지 않는다.
+ * <p>
+ * 예산은 등급마다 따로 둔다. 게스트가 몰려 예산을 다 써도 초대코드 사용자(면접관) 몫은 남는다.
  */
 @Component
 public class BudgetGuard {
@@ -38,10 +40,10 @@ public class BudgetGuard {
 		this.clock = clock;
 	}
 
-	public Optional<Reservation> reserve(long amountMicroUsd) {
-		String key = todayKey();
+	public Optional<Reservation> reserve(Tier tier, long amountMicroUsd) {
+		String key = todayKey(tier);
 		Long remaining = redis.execute(reserveScript, List.of(key), String.valueOf(amountMicroUsd),
-				String.valueOf(properties.globalDailyBudgetMicroUsd()), String.valueOf(KEY_TTL.toSeconds()));
+				String.valueOf(limitMicroUsd(tier)), String.valueOf(KEY_TTL.toSeconds()));
 		if (remaining == null || remaining < 0) {
 			return Optional.empty();
 		}
@@ -60,17 +62,17 @@ public class BudgetGuard {
 		redis.opsForValue().decrement(reservation.key(), reservation.amountMicroUsd());
 	}
 
-	public long usedTodayMicroUsd() {
-		String value = redis.opsForValue().get(todayKey());
+	public long usedTodayMicroUsd(Tier tier) {
+		String value = redis.opsForValue().get(todayKey(tier));
 		return value == null ? 0 : Long.parseLong(value);
 	}
 
-	public long limitMicroUsd() {
-		return properties.globalDailyBudgetMicroUsd();
+	public long limitMicroUsd(Tier tier) {
+		return properties.policy(tier).dailyBudgetMicroUsd();
 	}
 
-	private String todayKey() {
-		return "budget:global:" + LocalDate.now(clock.withZone(properties.zone()));
+	private String todayKey(Tier tier) {
+		return "budget:" + tier.name().toLowerCase() + ":" + LocalDate.now(clock.withZone(properties.zone()));
 	}
 
 	public record Reservation(String key, long amountMicroUsd) {

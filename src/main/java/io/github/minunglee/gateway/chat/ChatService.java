@@ -10,6 +10,7 @@ import io.github.minunglee.gateway.limit.KillSwitch;
 import io.github.minunglee.gateway.limit.RateLimitExceededException;
 import io.github.minunglee.gateway.limit.RateLimitResult;
 import io.github.minunglee.gateway.limit.RateLimiter;
+import io.github.minunglee.gateway.limit.Requester;
 import io.github.minunglee.gateway.llm.LlmClient;
 import io.github.minunglee.gateway.llm.LlmException;
 import io.github.minunglee.gateway.llm.LlmProperties;
@@ -69,28 +70,28 @@ public class ChatService {
 		this.clock = clock;
 	}
 
-	public ChatResult chat(String clientKey, String message) {
+	public ChatResult chat(Requester requester, String message) {
 		Instant startedAt = clock.instant();
-		LlmRequest request = new LlmRequest(llmProperties.model(), message, llmProperties.maxTokens());
+		LlmRequest request = new LlmRequest(requester.model(), message, llmProperties.maxTokens());
 
 		RateLimitResult limit;
 		Optional<BudgetGuard.Reservation> reservation;
 		try {
-			limit = rateLimiter.tryAcquire(clientKey);
+			limit = rateLimiter.tryAcquire(requester.rateKey(), requester.hourly(), requester.daily());
 			if (!limit.allowed()) {
 				throw new RateLimitExceededException(limit);
 			}
 			if (killSwitch.isOn()) {
-				return degraded(request, limit, startedAt, Degraded.KILL_SWITCH);
+				return degraded(requester, request, limit, startedAt, Degraded.KILL_SWITCH);
 			}
-			reservation = budgetGuard.reserve(maxCostMicroUsd(request));
+			reservation = budgetGuard.reserve(requester.tier(), maxCostMicroUsd(request));
 		}
 		catch (DataAccessException ex) {
 			log.error("Redis 장애로 사용량·예산을 확인할 수 없어 데모 응답으로 전환합니다", ex);
-			return degraded(request, null, startedAt, Degraded.GUARD_UNAVAILABLE);
+			return degraded(requester, request, null, startedAt, Degraded.GUARD_UNAVAILABLE);
 		}
 		if (reservation.isEmpty()) {
-			return degraded(request, limit, startedAt, Degraded.BUDGET_EXHAUSTED);
+			return degraded(requester, request, limit, startedAt, Degraded.BUDGET_EXHAUSTED);
 		}
 
 		LlmResponse response;
@@ -99,8 +100,8 @@ public class ChatService {
 		}
 		catch (LlmException ex) {
 			budgetGuard.refund(reservation.get());
-			requestLogRepository.save(new RequestLog(llmClient.mode(), request.model(), RequestLog.Status.ERROR, 0,
-					0, 0, elapsedMs(startedAt), startedAt));
+			requestLogRepository.save(new RequestLog(requester, llmClient.mode(), request.model(),
+					RequestLog.Status.ERROR, 0, 0, 0, elapsedMs(startedAt), startedAt));
 			throw ex;
 		}
 
@@ -108,8 +109,9 @@ public class ChatService {
 				response.outputTokens());
 		budgetGuard.settle(reservation.get(), costMicroUsd);
 		long latencyMs = elapsedMs(startedAt);
-		requestLogRepository.save(new RequestLog(llmClient.mode(), response.model(), RequestLog.Status.SUCCESS,
-				response.inputTokens(), response.outputTokens(), costMicroUsd, latencyMs, startedAt));
+		requestLogRepository.save(new RequestLog(requester, llmClient.mode(), response.model(),
+				RequestLog.Status.SUCCESS, response.inputTokens(), response.outputTokens(), costMicroUsd, latencyMs,
+				startedAt));
 
 		return new ChatResult(response.text(), response.model(), llmClient.mode(), response.inputTokens(),
 				response.outputTokens(), costMicroUsd, latencyMs, limit.remainingThisHour(), limit.remainingToday());
@@ -122,10 +124,11 @@ public class ChatService {
 		return costCalculator.costMicroUsd(request.model(), maxInputTokens, request.maxTokens());
 	}
 
-	private ChatResult degraded(LlmRequest request, RateLimitResult limit, Instant startedAt, Degraded reason) {
+	private ChatResult degraded(Requester requester, LlmRequest request, RateLimitResult limit, Instant startedAt,
+			Degraded reason) {
 		long latencyMs = elapsedMs(startedAt);
-		requestLogRepository.save(new RequestLog("demo", request.model(), RequestLog.Status.DEGRADED, 0, 0, 0,
-				latencyMs, startedAt));
+		requestLogRepository.save(new RequestLog(requester, "demo", request.model(), RequestLog.Status.DEGRADED, 0,
+				0, 0, latencyMs, startedAt));
 		int remainingThisHour = limit == null ? 0 : limit.remainingThisHour();
 		int remainingToday = limit == null ? 0 : limit.remainingToday();
 		return new ChatResult(reason.message, request.model(), "demo", 0, 0, 0, latencyMs, remainingThisHour,

@@ -1,7 +1,9 @@
 package io.github.minunglee.gateway.web;
 
+import jakarta.servlet.http.HttpServletRequest;
+
+import io.github.minunglee.gateway.invite.RequesterResolver;
 import io.github.minunglee.gateway.llm.LlmClient;
-import io.github.minunglee.gateway.llm.LlmProperties;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,17 +14,17 @@ class DemoPageController {
 
 	private final LlmClient llmClient;
 
-	private final LlmProperties llmProperties;
+	private final RequesterResolver requesterResolver;
 
-	DemoPageController(LlmClient llmClient, LlmProperties llmProperties) {
+	DemoPageController(LlmClient llmClient, RequesterResolver requesterResolver) {
 		this.llmClient = llmClient;
-		this.llmProperties = llmProperties;
+		this.requesterResolver = requesterResolver;
 	}
 
 	@GetMapping("/gateway")
-	String gateway(Model model) {
+	String gateway(Model model, HttpServletRequest request) {
 		model.addAttribute("mode", llmClient.mode());
-		model.addAttribute("model", llmProperties.model());
+		model.addAttribute("requester", requesterResolver.resolve(request));
 		return "gateway";
 	}
 

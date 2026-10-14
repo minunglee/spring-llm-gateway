@@ -12,8 +12,9 @@
 	<section class="card locked">
 		<h1>이력서 및 경력기술서</h1>
 		<p class="lead">개인정보가 포함되어 있어 초대코드가 있는 분만 볼 수 있습니다.</p>
-		<p class="hint">초대코드 입력 기능은 곧 제공됩니다.</p>
 	</section>
+
+	<section th:replace="~{fragments :: invite(${requester})}"></section>
 </main>
 </body>
 </html>

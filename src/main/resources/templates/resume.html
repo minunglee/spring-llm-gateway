@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="robots" content="noindex">
+	<title>이력서 및 경력기술서 | 이민웅</title>
+	<link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<main class="container">
+	<a class="back" th:href="@{/}">← 포트폴리오</a>
+	<section class="card locked">
+		<h1>이력서 및 경력기술서</h1>
+		<p class="lead" th:text="|${requester.inviteLabel()} 초대코드로 열람 중입니다.|">초대코드로 열람 중입니다.</p>
+		<p class="hint">이력서 내용은 곧 공개됩니다.</p>
+	</section>
+</main>
+</body>
+</html>

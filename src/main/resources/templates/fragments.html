@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 초대코드 입력·상태 (메인, 체험 페이지 공통) -->
+<section class="card invite" th:fragment="invite(requester)">
+	<div th:if="${requester.invited()}" class="invite-active">
+		<span>초대코드 사용 중 · <strong th:text="${requester.inviteLabel()}">회사</strong></span>
+		<button type="button" id="invite-clear" class="link-button">해제</button>
+	</div>
+	<form th:unless="${requester.invited()}" id="invite-form">
+		<label for="invite-code">초대코드</label>
+		<div class="invite-row">
+			<input id="invite-code" name="code" maxlength="40" autocomplete="off" spellcheck="false"
+				   placeholder="XXXX-XXXX-XXXX">
+			<button type="submit">입력</button>
+		</div>
+		<p id="invite-error" class="error" role="alert" hidden></p>
+		<p class="hint">초대코드가 있으면 이력서를 열람하고, 더 좋은 모델(Claude Sonnet)로 하루 100회까지 체험할 수 있습니다.</p>
+	</form>
+	<script th:src="@{/invite.js}" defer></script>
+</section>
+
+</body>
+</html>

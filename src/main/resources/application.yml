@@ -22,16 +22,27 @@ gateway:
   llm:
     # mock: 가짜 응답(비용 0원) / anthropic: 실제 Claude API 호출
     mode: ${GATEWAY_LLM_MODE:mock}
-    model: claude-haiku-5-5
     max-tokens: 1024
     mock-latency: 300ms
     anthropic-api-key: ${ANTHROPIC_API_KEY:}
   limit:
-    hourly-per-ip: 5
-    daily-per-ip: 20
-    global-daily-budget-usd: 1.00
     ip-salt: ${GATEWAY_IP_SALT:local-dev-salt}
     zone: Asia/Seoul
+    # 등급별 정책. 예산은 등급마다 따로 잡아 게스트가 몰려도 초대코드 사용자 몫이 남게 한다 (합계 하루 $1)
+    guest:
+      model: claude-haiku-5-5
+      hourly: 5
+      daily: 20
+      daily-budget-usd: 0.50
+    invite:
+      model: claude-sonnet-5-5
+      hourly: 30
+      daily: 100
+      daily-budget-usd: 0.50
+  invite:
+    # 초대코드 쿠키 서명용 비밀값
+    cookie-secret: ${GATEWAY_COOKIE_SECRET:local-dev-cookie-secret}
+    cookie-max-age: 7d
   admin:
     # 비어 있으면 관리자 API(/admin/**)를 막는다
     token: ${GATEWAY_ADMIN_TOKEN:}
