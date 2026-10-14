@@ -25,11 +25,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(properties = { "gateway.llm.mode=mock", "gateway.llm.mock-latency=0ms",
-		"gateway.admin.token=test-admin-token" })
+		"gateway.admin.token=test-admin-token", "gateway.resume.dir=src/test/resources/resume" })
 @AutoConfigureMockMvc
 @Import(TestcontainersConfiguration.class)
 class InviteIntegrationTest {
@@ -124,12 +125,26 @@ class InviteIntegrationTest {
 		Cookie invite = redeem(createInvite("F사", 100), "10.1.0.10");
 		mockMvc.perform(get("/resume").cookie(invite))
 			.andExpect(status().isOk())
-			.andExpect(content().string(containsString("F사 초대코드로 열람 중")));
+			.andExpect(content().string(containsString("F사 초대코드로 열람 중")))
+			.andExpect(content().string(containsString("홍길동")))
+			.andExpect(content().string(containsString("테스트 문제 상황")));
+		mockMvc.perform(get("/resume/pdf").cookie(invite))
+			.andExpect(status().isOk())
+			.andExpect(header().string("Content-Type", "application/pdf"))
+			.andExpect(header().string("Cache-Control", "no-store"));
 
 		mockMvc.perform(get("/admin/invites").header("Authorization", ADMIN))
 			.andExpect(jsonPath("$[0].label").value("F사"))
 			.andExpect(jsonPath("$[0].redeemCount").value(1))
-			.andExpect(jsonPath("$[0].resumeViews").value(1));
+			.andExpect(jsonPath("$[0].resumeViews").value(1))
+			.andExpect(jsonPath("$[0].resumePdfDownloads").value(1));
+	}
+
+	@Test
+	void 초대코드_없이는_PDF를_받을_수_없다() throws Exception {
+		mockMvc.perform(get("/resume/pdf"))
+			.andExpect(status().isSeeOther())
+			.andExpect(header().string("Location", "/resume"));
 	}
 
 	@Test

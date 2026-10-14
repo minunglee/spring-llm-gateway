@@ -1,0 +1,35 @@
+package io.github.minunglee.gateway.portal;
+
+import java.util.List;
+
+/**
+ * 이력서·경력기술서 내용. 개인정보가 있어 저장소(Git)가 아니라 서버의 비공개 폴더(resume.json)에서 읽는다.
+ */
+public record Resume(String name, String headline, List<String> summary, Contact contact, List<String> skills,
+		List<Experience> experience, List<Project> projects, List<Entry> education, List<Certificate> certificates,
+		List<Entry> training) {
+
+	public record Contact(String email, String phone) {
+	}
+
+	public record Experience(String company, String period, String role) {
+	}
+
+	public record Project(String title, String period, String org, List<String> tags, String overview,
+			List<Section> sections) {
+	}
+
+	public record Section(String title, String overview, List<Item> items) {
+	}
+
+	/** problem이 있으면 "문제 → 해결" 형태로, 없으면 해결 내용만 보여준다 */
+	public record Item(String title, String problem, List<String> points) {
+	}
+
+	public record Entry(String period, String name) {
+	}
+
+	public record Certificate(String date, String name) {
+	}
+
+}

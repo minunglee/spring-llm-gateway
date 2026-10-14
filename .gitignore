@@ -41,3 +41,6 @@ out/
 
 ### Claude Code ###
 .claude/
+
+### 이력서 원본 (서버에만 보관, Git에 올리지 않음) ###
+/private/
