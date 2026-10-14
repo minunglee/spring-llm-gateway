@@ -17,7 +17,9 @@ import jakarta.persistence.Id;
 public class RequestLog {
 
 	public enum Status {
-		SUCCESS, ERROR
+		SUCCESS, ERROR,
+		/** 예산 소진·긴급 차단 등으로 LLM을 호출하지 않고 데모 응답을 준 경우 */
+		DEGRADED
 	}
 
 	@Id

@@ -13,6 +13,8 @@ services:
       SERVER_FORWARD_HEADERS_STRATEGY: framework
       GATEWAY_LLM_MODE: ${GATEWAY_LLM_MODE:-mock}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GATEWAY_IP_SALT: ${GATEWAY_IP_SALT}
+      GATEWAY_ADMIN_TOKEN: ${GATEWAY_ADMIN_TOKEN}
     depends_on:
       postgres:
         condition: service_healthy

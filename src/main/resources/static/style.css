@@ -162,6 +162,42 @@ button:disabled {
 	font-variant-numeric: tabular-nums;
 }
 
+.budget-head {
+	display: flex;
+	justify-content: space-between;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.bar {
+	height: 8px;
+	margin: 10px 0;
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	overflow: hidden;
+}
+
+.bar-fill {
+	height: 100%;
+	background: var(--accent);
+	transition: width 0.3s;
+}
+
+.hint {
+	margin: 0;
+	color: var(--muted);
+	font-size: 0.85rem;
+}
+
+#remaining {
+	margin-top: 12px;
+}
+
+.degraded {
+	border-color: var(--accent);
+}
+
 .error {
 	color: var(--error);
 }
