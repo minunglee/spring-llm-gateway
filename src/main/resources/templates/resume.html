@@ -48,32 +48,6 @@
 		</section>
 
 		<section class="resume-section">
-			<h2 class="section-title">경력기술서</h2>
-			<article class="card project" th:each="project : ${resume.projects()}">
-				<h3 th:text="${project.title()}">프로젝트</h3>
-				<p class="muted" th:text="|${project.period()} · ${project.org()}|">기간 · 소속</p>
-				<ul class="chips small">
-					<li th:each="tag : ${project.tags()}" th:text="${tag}">태그</li>
-				</ul>
-				<p th:text="${project.overview()}">개요</p>
-
-				<section class="project-section" th:each="section : ${project.sections()}">
-					<h4 th:text="${section.title()}">세부 주제</h4>
-					<p th:if="${section.overview() != null}" class="muted" th:text="${section.overview()}">개요</p>
-					<div class="item" th:each="item : ${section.items()}">
-						<p th:if="${item.title() != null}" class="item-title" th:text="${item.title()}">항목</p>
-						<p th:if="${item.problem() != null}" class="problem">
-							<span class="label">문제</span><span th:text="${item.problem()}">문제 상황</span>
-						</p>
-						<ul class="points">
-							<li th:each="point : ${item.points()}" th:text="${point}">해결</li>
-						</ul>
-					</div>
-				</section>
-			</article>
-		</section>
-
-		<section class="resume-section">
 			<h2 class="section-title">개인 프로젝트</h2>
 			<a class="tile" th:href="@{/gateway}">
 				<span class="tile-body">
@@ -103,6 +77,42 @@
 				</dl>
 			</div>
 		</section>
+		<details class="resume-section fold" open>
+			<summary class="fold-title">경력기술서</summary>
+			<article class="card project" th:each="project : ${resume.projects()}">
+				<h3 th:text="${project.title()}">프로젝트</h3>
+				<p class="muted" th:text="|${project.period()} · ${project.org()}|">기간 · 소속</p>
+				<ul class="chips small">
+					<li th:each="tag : ${project.tags()}" th:text="${tag}">태그</li>
+				</ul>
+				<p th:text="${project.overview()}">개요</p>
+
+				<section class="project-section" th:each="section : ${project.sections()}">
+					<h4 th:text="${section.title()}">세부 주제</h4>
+					<p th:if="${section.overview() != null}" class="muted" th:text="${section.overview()}">개요</p>
+					<div class="item" th:each="item : ${section.items()}">
+						<p th:if="${item.title() != null}" class="item-title" th:text="${item.title()}">항목</p>
+						<p th:if="${item.problem() != null}" class="problem">
+							<span class="label">문제</span><span th:text="${item.problem()}">문제 상황</span>
+						</p>
+						<ul class="points">
+							<li th:each="point : ${item.points()}" th:text="${point}">해결</li>
+						</ul>
+					</div>
+				</section>
+			</article>
+		</details>
+
+
+		<details class="resume-section fold" th:if="${resume.coverLetter() != null and !resume.coverLetter().isEmpty()}">
+			<summary class="fold-title">자기소개서</summary>
+			<article class="card cover-letter">
+				<section class="cover-item" th:each="part : ${resume.coverLetter()}">
+					<h3 th:text="${part.title()}">소제목</h3>
+					<p th:each="paragraph : ${part.paragraphs()}" th:text="${paragraph}">문단</p>
+				</section>
+			</article>
+		</details>
 	</th:block>
 </main>
 </body>

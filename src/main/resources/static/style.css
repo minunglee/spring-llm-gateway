@@ -632,3 +632,54 @@ a.tile:hover {
 		margin-bottom: 14px;
 	}
 }
+
+/* ---------- 접을 수 있는 영역 (경력기술서, 자기소개서) ---------- */
+
+.fold-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 18px;
+	padding: 16px 20px;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	font-size: 1.1rem;
+	font-weight: 700;
+	cursor: pointer;
+	list-style: none;
+}
+
+.fold-title::-webkit-details-marker {
+	display: none;
+}
+
+.fold-title::after {
+	content: "펼치기 ▾";
+	color: var(--muted);
+	font-size: 0.85rem;
+	font-weight: 400;
+}
+
+.fold[open] > .fold-title::after {
+	content: "접기 ▴";
+}
+
+.fold-title:hover {
+	border-color: var(--accent);
+}
+
+.cover-item + .cover-item {
+	margin-top: 40px;
+	padding-top: 32px;
+	border-top: 1px solid var(--border);
+}
+
+.cover-item h3 {
+	margin: 0 0 16px;
+	font-size: 1.1rem;
+}
+
+.cover-item p {
+	margin: 0 0 16px;
+}
