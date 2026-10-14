@@ -5,6 +5,24 @@ const submit = document.getElementById('submit');
 const result = document.getElementById('result');
 const error = document.getElementById('error');
 
+// 봇 확인 위젯 (게스트에게만 있음). 토큰은 한 번만 쓸 수 있어 요청마다 새로 받는다
+const turnstileBox = document.getElementById('turnstile');
+let turnstileWidget = null;
+
+window.onTurnstileLoad = () => {
+	turnstileWidget = turnstile.render(turnstileBox, {
+		sitekey: turnstileBox.dataset.sitekey,
+		appearance: 'interaction-only',
+		theme: 'auto',
+		language: 'ko',
+	});
+};
+
+function turnstileToken() {
+	if (!turnstileBox) return undefined;
+	return turnstileWidget === null ? '' : turnstile.getResponse(turnstileWidget);
+}
+
 async function refreshBudget() {
 	try {
 		const response = await fetch('/demo/budget');
@@ -25,6 +43,12 @@ message.addEventListener('input', () => {
 form.addEventListener('submit', async (event) => {
 	event.preventDefault();
 	error.hidden = true;
+	const token = turnstileToken();
+	if (token === '') {
+		error.textContent = '자동 요청 확인 중입니다. 잠시 후 다시 눌러주세요.';
+		error.hidden = false;
+		return;
+	}
 	submit.disabled = true;
 	submit.textContent = '응답 기다리는 중...';
 
@@ -32,7 +56,7 @@ form.addEventListener('submit', async (event) => {
 		const response = await fetch('/demo/chat', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ message: message.value }),
+			body: JSON.stringify({ message: message.value, turnstileToken: token }),
 		});
 		const body = await response.json();
 		if (!response.ok) {
@@ -54,6 +78,7 @@ form.addEventListener('submit', async (event) => {
 	} finally {
 		submit.disabled = false;
 		submit.textContent = '보내기';
+		if (turnstileWidget !== null) turnstile.reset(turnstileWidget);
 		refreshBudget();
 	}
 });

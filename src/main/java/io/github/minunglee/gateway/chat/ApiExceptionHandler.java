@@ -37,6 +37,11 @@ class ApiExceptionHandler {
 			.body(body);
 	}
 
+	@ExceptionHandler(BotCheckFailedException.class)
+	ProblemDetail handleBotCheck(BotCheckFailedException ex) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+	}
+
 	@ExceptionHandler(LlmException.class)
 	ProblemDetail handleLlm(LlmException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY,

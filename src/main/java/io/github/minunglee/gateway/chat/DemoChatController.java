@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
+import io.github.minunglee.gateway.bot.TurnstileVerifier;
 import io.github.minunglee.gateway.invite.RequesterResolver;
 import io.github.minunglee.gateway.limit.BudgetGuard;
 import io.github.minunglee.gateway.limit.Requester;
@@ -27,16 +28,25 @@ class DemoChatController {
 
 	private final BudgetGuard budgetGuard;
 
-	DemoChatController(ChatService chatService, RequesterResolver requesterResolver, BudgetGuard budgetGuard) {
+	private final TurnstileVerifier turnstileVerifier;
+
+	DemoChatController(ChatService chatService, RequesterResolver requesterResolver, BudgetGuard budgetGuard,
+			TurnstileVerifier turnstileVerifier) {
 		this.chatService = chatService;
 		this.requesterResolver = requesterResolver;
 		this.budgetGuard = budgetGuard;
+		this.turnstileVerifier = turnstileVerifier;
 	}
 
 	@PostMapping("/demo/chat")
 	DemoChatResponse chat(@Valid @RequestBody DemoChatRequest request, HttpServletRequest servletRequest) {
-		ChatService.ChatResult result = chatService.chat(requesterResolver.resolve(servletRequest),
-				request.message().strip());
+		Requester requester = requesterResolver.resolve(servletRequest);
+		// 게스트만 봇 확인을 한다. 초대코드 사용자는 코드로 이미 확인된 사람이다
+		if (!requester.invited()
+				&& !turnstileVerifier.verify(request.turnstileToken(), servletRequest.getRemoteAddr())) {
+			throw new BotCheckFailedException();
+		}
+		ChatService.ChatResult result = chatService.chat(requester, request.message().strip());
 		return new DemoChatResponse(result.answer(), result.model(), result.mode(), result.inputTokens(),
 				result.outputTokens(), CostCalculator.formatUsd(result.costMicroUsd()), result.latencyMs(),
 				result.remainingThisHour(), result.remainingToday());
@@ -52,8 +62,11 @@ class DemoChatController {
 				Math.min(100.0, used * 100.0 / limit));
 	}
 
+	/**
+	 * @param turnstileToken 봇 확인 위젯이 발급한 일회용 토큰 (게스트만 필요)
+	 */
 	record DemoChatRequest(@NotBlank(message = "질문을 입력해주세요") @Size(max = 2000,
-			message = "질문은 2,000자 이하로 입력해주세요") String message) {
+			message = "질문은 2,000자 이하로 입력해주세요") String message, @Size(max = 4096) String turnstileToken) {
 	}
 
 	record DemoChatResponse(String answer, String model, String mode, long inputTokens, long outputTokens,

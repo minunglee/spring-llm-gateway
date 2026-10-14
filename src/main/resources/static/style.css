@@ -1331,3 +1331,8 @@ a.link-button {
 	margin-top: 16px;
 	color: var(--muted);
 }
+
+/* 봇 확인 위젯: 체크가 필요할 때만 공간을 차지한다 */
+.turnstile {
+	margin-top: 12px;
+}
