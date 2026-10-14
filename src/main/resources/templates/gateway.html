@@ -15,17 +15,21 @@
 		<div class="badges">
 			<span class="badge" th:classappend="${mode == 'mock'} ? 'badge-mock' : 'badge-live'"
 				  th:text="${mode == 'mock'} ? '가짜 응답 모드 (비용 0원)' : '실제 Claude 호출'">모드</span>
-			<span class="badge" th:text="${model}">모델</span>
+			<span class="badge" th:text="${requester.model()}">모델</span>
+			<span class="badge" th:classappend="${requester.invited()} ? 'badge-invite'"
+				  th:text="${requester.invited()} ? '초대코드 · ' + ${requester.inviteLabel()} : '게스트'">등급</span>
 		</div>
 	</header>
 
 	<section class="card budget" aria-label="오늘 전체 예산">
 		<div class="budget-head">
-			<span>오늘 전체 AI 예산</span>
+			<span>오늘 AI 예산</span>
 			<span id="budget-text">-</span>
 		</div>
 		<div class="bar"><div id="budget-bar" class="bar-fill" style="width: 0%"></div></div>
-		<p class="hint">한 사람당 시간당 5회, 하루 20회까지 사용할 수 있고, 예산이 소진되면 데모 응답으로 바뀝니다.</p>
+		<p class="hint"
+		   th:text="|시간당 ${requester.hourly()}회, 하루 ${requester.daily()}회까지 사용할 수 있고, 예산이 소진되면 데모 응답으로 바뀝니다.|">
+			사용 한도 안내</p>
 	</section>
 
 	<form id="chat-form" class="card">
@@ -51,6 +55,8 @@
 	</section>
 
 	<p id="error" class="error" role="alert" hidden></p>
+
+	<section th:replace="~{fragments :: invite(${requester})}"></section>
 </main>
 <script th:src="@{/app.js}"></script>
 </body>

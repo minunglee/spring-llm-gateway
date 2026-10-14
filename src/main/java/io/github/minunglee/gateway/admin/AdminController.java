@@ -2,6 +2,7 @@ package io.github.minunglee.gateway.admin;
 
 import io.github.minunglee.gateway.limit.BudgetGuard;
 import io.github.minunglee.gateway.limit.KillSwitch;
+import io.github.minunglee.gateway.limit.Tier;
 import io.github.minunglee.gateway.pricing.CostCalculator;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,8 +26,7 @@ class AdminController {
 
 	@GetMapping("/status")
 	StatusResponse status() {
-		return new StatusResponse(CostCalculator.formatUsd(budgetGuard.usedTodayMicroUsd()),
-				CostCalculator.formatUsd(budgetGuard.limitMicroUsd()), killSwitch.isOn());
+		return new StatusResponse(budget(Tier.GUEST), budget(Tier.INVITE), killSwitch.isOn());
 	}
 
 	@PutMapping("/killswitch")
@@ -35,10 +35,18 @@ class AdminController {
 		return status();
 	}
 
+	private Budget budget(Tier tier) {
+		return new Budget(CostCalculator.formatUsd(budgetGuard.usedTodayMicroUsd(tier)),
+				CostCalculator.formatUsd(budgetGuard.limitMicroUsd(tier)));
+	}
+
 	record KillSwitchRequest(boolean enabled) {
 	}
 
-	record StatusResponse(String budgetUsedToday, String budgetLimit, boolean killSwitch) {
+	record Budget(String usedToday, String limit) {
+	}
+
+	record StatusResponse(Budget guestBudget, Budget inviteBudget, boolean killSwitch) {
 	}
 
 }

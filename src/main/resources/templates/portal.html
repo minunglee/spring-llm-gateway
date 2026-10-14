@@ -16,12 +16,12 @@
 
 	<section class="section">
 		<h2 class="section-title">프로필</h2>
-		<a class="tile tile-locked" th:href="@{/resume}">
+		<a class="tile" th:classappend="${requester.invited()} ? '' : 'tile-locked'" th:href="@{/resume}">
 			<span class="tile-body">
 				<span class="tile-title">이력서 및 경력기술서</span>
 				<span class="tile-desc">경력, 프로젝트, 기술 스택</span>
 			</span>
-			<span class="tile-tag">초대코드</span>
+			<span class="tile-tag" th:text="${requester.invited()} ? '열람 가능' : '초대코드'">초대코드</span>
 		</a>
 	</section>
 
@@ -42,6 +42,8 @@
 			<span class="tile-tag">준비 중</span>
 		</div>
 	</section>
+
+	<section th:replace="~{fragments :: invite(${requester})}"></section>
 
 	<footer class="footer">
 		<a href="https://github.com/minunglee/spring-llm-gateway" target="_blank" rel="noopener">GitHub</a>

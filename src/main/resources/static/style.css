@@ -168,6 +168,8 @@ button:disabled {
 .budget-head {
 	display: flex;
 	justify-content: space-between;
+	gap: 12px;
+	white-space: nowrap;
 	font-weight: 600;
 	font-variant-numeric: tabular-nums;
 }
@@ -326,4 +328,44 @@ a.tile:hover {
 .locked {
 	text-align: center;
 	padding: 40px 20px;
+}
+
+/* ---------- 초대코드 ---------- */
+
+.badge-invite {
+	background: var(--accent);
+	color: #fff;
+	border-color: transparent;
+}
+
+.invite-row {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.invite-row input {
+	flex: 1;
+	min-width: 0;
+	padding: 10px 12px;
+	background: var(--bg);
+	color: var(--text);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	font: inherit;
+}
+
+.invite-active {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+}
+
+.link-button {
+	padding: 4px 8px;
+	background: none;
+	color: var(--muted);
+	border: 1px solid var(--border);
+	font-weight: 400;
 }

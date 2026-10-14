@@ -31,16 +31,17 @@ class RateLimiterTest {
 	@BeforeEach
 	void setUp() {
 		redis.getConnectionFactory().getConnection().serverCommands().flushAll();
-		LimitProperties properties = new LimitProperties(5, 20, BigDecimal.ONE, "salt", ZoneId.of("Asia/Seoul"));
+		LimitProperties.TierPolicy policy = new LimitProperties.TierPolicy("model", 5, 20, BigDecimal.ONE);
+		LimitProperties properties = new LimitProperties("salt", ZoneId.of("Asia/Seoul"), policy, policy);
 		rateLimiter = new RateLimiter(redis, properties, clock);
 	}
 
 	@Test
 	void 시간당_한도까지만_허용한다() {
 		for (int i = 0; i < 5; i++) {
-			assertThat(rateLimiter.tryAcquire("ip-a").allowed()).isTrue();
+			assertThat(acquire("ip-a").allowed()).isTrue();
 		}
-		RateLimitResult denied = rateLimiter.tryAcquire("ip-a");
+		RateLimitResult denied = acquire("ip-a");
 
 		assertThat(denied.allowed()).isFalse();
 		// 토큰 1개가 다시 차는 데 12분(1시간 / 5)
@@ -50,45 +51,55 @@ class RateLimiterTest {
 	@Test
 	void 시간이_지나면_토큰이_다시_찬다() {
 		for (int i = 0; i < 5; i++) {
-			rateLimiter.tryAcquire("ip-a");
+			acquire("ip-a");
 		}
 		clock.advance(Duration.ofMinutes(12));
 
-		assertThat(rateLimiter.tryAcquire("ip-a").allowed()).isTrue();
-		assertThat(rateLimiter.tryAcquire("ip-a").allowed()).isFalse();
+		assertThat(acquire("ip-a").allowed()).isTrue();
+		assertThat(acquire("ip-a").allowed()).isFalse();
 	}
 
 	@Test
 	void IP마다_따로_센다() {
 		for (int i = 0; i < 5; i++) {
-			rateLimiter.tryAcquire("ip-a");
+			acquire("ip-a");
 		}
 
-		assertThat(rateLimiter.tryAcquire("ip-b").allowed()).isTrue();
+		assertThat(acquire("ip-b").allowed()).isTrue();
 	}
 
 	@Test
 	void 하루_한도를_넘으면_다음날_0시까지_막는다() {
 		for (int hour = 0; hour < 4; hour++) {
 			for (int i = 0; i < 5; i++) {
-				assertThat(rateLimiter.tryAcquire("ip-a").allowed()).isTrue();
+				assertThat(acquire("ip-a").allowed()).isTrue();
 			}
 			clock.advance(Duration.ofHours(1));
 		}
 		// 16:00 KST, 오늘 20회 사용
-		RateLimitResult denied = rateLimiter.tryAcquire("ip-a");
+		RateLimitResult denied = acquire("ip-a");
 
 		assertThat(denied.allowed()).isFalse();
 		assertThat(denied.dailyLimitReached()).isTrue();
 		assertThat(denied.retryAfter()).isEqualTo(Duration.ofHours(8));
 
 		clock.advance(Duration.ofHours(8));
-		assertThat(rateLimiter.tryAcquire("ip-a").allowed()).isTrue();
+		assertThat(acquire("ip-a").allowed()).isTrue();
+	}
+
+	@Test
+	void 한도는_호출할_때마다_다르게_줄_수_있다() {
+		assertThat(rateLimiter.tryAcquire("code-1", 1, 100).allowed()).isTrue();
+		assertThat(rateLimiter.tryAcquire("code-1", 1, 100).allowed()).isFalse();
+	}
+
+	private RateLimitResult acquire(String key) {
+		return rateLimiter.tryAcquire(key, 5, 20);
 	}
 
 	@Test
 	void 남은_횟수를_알려준다() {
-		RateLimitResult first = rateLimiter.tryAcquire("ip-a");
+		RateLimitResult first = acquire("ip-a");
 
 		assertThat(first.remainingThisHour()).isEqualTo(4);
 		assertThat(first.remainingToday()).isEqualTo(19);
