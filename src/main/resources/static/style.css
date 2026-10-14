@@ -683,3 +683,22 @@ a.tile:hover {
 .cover-item p {
 	margin: 0 0 16px;
 }
+
+/* ---------- 이력서 자간 ---------- */
+
+.resume {
+	line-height: 1.85;
+	letter-spacing: 0.03em;
+}
+
+/* 제목은 자간을 덜 벌려 덩어리감 유지 */
+.resume h1,
+.resume h3,
+.resume h4,
+.resume .fold-title {
+	letter-spacing: 0.01em;
+}
+
+.resume .chips li {
+	letter-spacing: 0.02em;
+}
