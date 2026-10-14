@@ -22,8 +22,17 @@ public record Resume(String name, String headline, List<String> summary, Contact
 	public record Section(String title, String overview, List<Item> items) {
 	}
 
-	/** problem이 있으면 "문제 → 해결" 형태로, 없으면 해결 내용만 보여준다 */
-	public record Item(String title, String problem, List<String> points) {
+	/**
+	 * problem이 있으면 "문제 → 해결" 형태로, 없으면 해결 내용만 보여준다.
+	 *
+	 * @param problemLabel problem 앞 라벨 (기본 "문제", 예: "상황")
+	 */
+	public record Item(String title, String problem, String problemLabel, List<String> points) {
+
+		public String problemLabelOrDefault() {
+			return problemLabel == null ? "문제" : problemLabel;
+		}
+
 	}
 
 	public record Entry(String period, String name) {

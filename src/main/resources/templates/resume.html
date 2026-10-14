@@ -78,39 +78,65 @@
 			</div>
 		</section>
 		<details class="resume-section fold" open>
-			<summary class="fold-title">경력기술서</summary>
-			<article class="card project" th:each="project : ${resume.projects()}">
-				<h3 th:text="${project.title()}">프로젝트</h3>
-				<p class="muted" th:text="|${project.period()} · ${project.org()}|">기간 · 소속</p>
-				<ul class="chips small">
-					<li th:each="tag : ${project.tags()}" th:text="${tag}">태그</li>
-				</ul>
-				<p th:text="${project.overview()}">개요</p>
+			<summary class="fold-title">
+				<span class="fold-head">
+					<span class="fold-label">CAREER</span>
+					<span class="fold-name">경력기술서</span>
+				</span>
+				<span class="fold-meta" th:text="|프로젝트 ${resume.projects().size()}개|">프로젝트</span>
+			</summary>
 
-				<section class="project-section" th:each="section : ${project.sections()}">
-					<h4 th:text="${section.title()}">세부 주제</h4>
-					<p th:if="${section.overview() != null}" class="muted" th:text="${section.overview()}">개요</p>
+			<nav class="project-nav" aria-label="프로젝트 바로가기">
+				<a th:each="project, stat : ${resume.projects()}" th:href="|#project-${stat.count}|"
+				   th:class="|project-link accent-${stat.count}|" th:text="${project.title()}">프로젝트</a>
+			</nav>
+
+			<article th:each="project, stat : ${resume.projects()}" th:id="|project-${stat.count}|"
+					 th:class="|card project accent-${stat.count}|">
+				<header class="project-head">
+					<span class="project-no" th:text="|PROJECT ${#numbers.formatInteger(stat.count, 2)}|">PROJECT 01</span>
+					<h3 th:text="${project.title()}">프로젝트</h3>
+					<p class="project-meta" th:text="|${project.period()} · ${project.org()}|">기간 · 소속</p>
+					<ul class="chips small">
+						<li th:each="tag : ${project.tags()}" th:text="${tag}">태그</li>
+					</ul>
+					<p class="project-overview" th:text="${project.overview()}">개요</p>
+				</header>
+
+				<section class="project-section" th:each="section, sectionStat : ${project.sections()}">
+					<h4>
+						<span class="section-no" th:text="${#numbers.formatInteger(sectionStat.count, 2)}">01</span>
+						<span th:text="${section.title()}">세부 주제</span>
+					</h4>
+					<p th:if="${section.overview() != null}" class="section-overview" th:text="${section.overview()}">개요</p>
 					<div class="item" th:each="item : ${section.items()}">
 						<p th:if="${item.title() != null}" class="item-title" th:text="${item.title()}">항목</p>
 						<p th:if="${item.problem() != null}" class="problem">
-							<span class="label">문제</span><span th:text="${item.problem()}">문제 상황</span>
+							<span class="label" th:text="${item.problemLabelOrDefault()}">문제</span><span th:text="${item.problem()}">문제 상황</span>
 						</p>
-						<ul class="points">
-							<li th:each="point : ${item.points()}" th:text="${point}">해결</li>
-						</ul>
+						<div class="solution" th:classappend="${item.problem() == null} ? 'no-label'">
+							<span th:if="${item.problem() != null}" class="label">해결</span>
+							<ul class="points">
+								<li th:each="point : ${item.points()}" th:text="${point}">해결</li>
+							</ul>
+						</div>
 					</div>
 				</section>
 			</article>
 		</details>
 
-
 		<details class="resume-section fold" th:if="${resume.coverLetter() != null and !resume.coverLetter().isEmpty()}">
-			<summary class="fold-title">자기소개서</summary>
-			<article class="card cover-letter">
-				<section class="cover-item" th:each="part : ${resume.coverLetter()}">
-					<h3 th:text="${part.title()}">소제목</h3>
-					<p th:each="paragraph : ${part.paragraphs()}" th:text="${paragraph}">문단</p>
-				</section>
+			<summary class="fold-title">
+				<span class="fold-head">
+					<span class="fold-label">ABOUT ME</span>
+					<span class="fold-name">자기소개서</span>
+				</span>
+				<span class="fold-meta" th:text="|${resume.coverLetter().size()}개 항목|">항목</span>
+			</summary>
+			<article class="card cover-item" th:each="part, stat : ${resume.coverLetter()}">
+				<span class="cover-no" th:text="${#numbers.formatInteger(stat.count, 2)}">01</span>
+				<h3 th:text="${part.title()}">소제목</h3>
+				<p th:each="paragraph : ${part.paragraphs()}" th:text="${paragraph}">문단</p>
 			</article>
 		</details>
 	</th:block>

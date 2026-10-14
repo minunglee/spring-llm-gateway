@@ -732,3 +732,264 @@ a.tile:hover {
 	margin-top: 56px;
 	padding-top: 44px;
 }
+
+/* ---------- 이력서 구분감: 단락 → 프로젝트 → 세부 주제 → 항목 ---------- */
+
+:root {
+	--project-1: #2563eb;
+	--project-2: #059669;
+	--project-3: #9333ea;
+	--text-soft: #3f3f3b;
+	--problem: #c2410c;
+	--solution: #059669;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--project-1: #60a5fa;
+		--project-2: #34d399;
+		--project-3: #c084fc;
+		--text-soft: #c9c9c4;
+		--problem: #fb923c;
+		--solution: #34d399;
+	}
+}
+
+.accent-1 { --project: var(--project-1); }
+.accent-2 { --project: var(--project-2); }
+.accent-3 { --project: var(--project-3); }
+
+/* 큰 단락 배너 (경력기술서, 자기소개서) */
+.resume .fold-title {
+	margin-bottom: 24px;
+	padding: 22px 24px;
+	border-left: 6px solid var(--accent);
+}
+
+.fold-head {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.fold-label {
+	color: var(--accent);
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+}
+
+.fold-name {
+	font-size: 1.5rem;
+	font-weight: 800;
+}
+
+.fold-meta {
+	margin-left: auto;
+	margin-right: 12px;
+	color: var(--muted);
+	font-size: 0.85rem;
+	font-weight: 400;
+}
+
+/* 프로젝트 바로가기 */
+.project-nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-bottom: 24px;
+}
+
+.project-link {
+	padding: 8px 14px;
+	border: 1px solid var(--project);
+	border-radius: 999px;
+	color: var(--project);
+	font-size: 0.9rem;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+/* 프로젝트 카드: 고유 색 띠 + 상단 머리 영역 */
+.resume .project {
+	margin-bottom: 40px;
+	padding: 0;
+	overflow: hidden;
+	border-left: 6px solid var(--project);
+	scroll-margin-top: 16px;
+}
+
+.project-head {
+	padding: 28px 28px 24px;
+	background: color-mix(in srgb, var(--project) 10%, transparent);
+	border-bottom: 1px solid var(--border);
+}
+
+.project-no {
+	color: var(--project);
+	font-size: 0.75rem;
+	font-weight: 800;
+	letter-spacing: 0.12em;
+}
+
+.resume .project h3 {
+	margin: 6px 0 4px;
+	font-size: 1.45rem;
+	line-height: 1.4;
+}
+
+.project-meta {
+	margin: 0;
+	color: var(--muted);
+	font-size: 0.9rem;
+}
+
+.project-overview {
+	margin: 0;
+	color: var(--text-soft);
+}
+
+/* 세부 주제 */
+.resume .project-section {
+	margin: 0;
+	padding: 36px 28px;
+	border-top: none;
+}
+
+.resume .project-section + .project-section {
+	border-top: 1px dashed var(--border);
+}
+
+.resume .project-section h4 {
+	display: flex;
+	gap: 12px;
+	align-items: baseline;
+	margin: 0 0 8px;
+	font-size: 1.15rem;
+	line-height: 1.5;
+}
+
+.section-no {
+	flex-shrink: 0;
+	color: var(--project);
+	font-size: 1rem;
+	font-weight: 800;
+}
+
+.section-overview {
+	margin: 0 0 4px;
+	padding-left: 32px;
+	color: var(--muted);
+	font-size: 0.92rem;
+}
+
+/* 항목: 제목 → 문제 → 해결 */
+.resume .item {
+	margin-top: 32px;
+	padding-left: 32px;
+}
+
+.resume .item-title {
+	position: relative;
+	font-size: 1.02rem;
+}
+
+.resume .item-title::before {
+	content: "";
+	position: absolute;
+	left: -20px;
+	top: 0.7em;
+	width: 8px;
+	height: 8px;
+	border-radius: 2px;
+	background: var(--project);
+}
+
+.resume .problem {
+	border-left: 3px solid var(--problem);
+	border-radius: 0 8px 8px 0;
+}
+
+.resume .problem .label {
+	color: var(--problem);
+}
+
+.solution {
+	display: flex;
+	gap: 8px;
+	padding: 4px 0 0 15px;
+}
+
+.solution.no-label {
+	padding-left: 0;
+}
+
+.solution .label {
+	flex-shrink: 0;
+	color: var(--solution);
+	font-weight: 600;
+	font-size: 0.92rem;
+	line-height: 1.75;
+}
+
+.solution .points {
+	padding-left: 18px;
+	color: var(--text-soft);
+}
+
+/* 자기소개서: 소제목마다 카드 + 번호 */
+.resume .cover-item {
+	margin-bottom: 24px;
+	padding: 32px 28px;
+	border-left: 6px solid var(--accent);
+}
+
+.resume .cover-item + .cover-item {
+	margin-top: 0;
+	padding-top: 32px;
+	border-top: 1px solid var(--border);
+}
+
+.cover-no {
+	color: var(--accent);
+	font-size: 0.8rem;
+	font-weight: 800;
+	letter-spacing: 0.1em;
+}
+
+.resume .cover-item h3 {
+	margin: 4px 0 20px;
+	font-size: 1.2rem;
+	line-height: 1.5;
+}
+
+.resume .cover-item p {
+	color: var(--text-soft);
+}
+
+@media (max-width: 480px) {
+	.project-head,
+	.resume .project-section {
+		padding-left: 20px;
+		padding-right: 20px;
+	}
+
+	.resume .item,
+	.section-overview {
+		padding-left: 16px;
+	}
+
+	.resume .item-title::before {
+		left: -14px;
+	}
+
+	.solution {
+		flex-direction: column;
+		gap: 2px;
+		padding-left: 0;
+	}
+
+	.fold-name {
+		font-size: 1.3rem;
+	}
+}
