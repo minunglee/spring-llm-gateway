@@ -684,21 +684,51 @@ a.tile:hover {
 	margin: 0 0 16px;
 }
 
-/* ---------- 이력서 자간 ---------- */
+/* ---------- 이력서 문단 간격 (내용 덩어리 사이를 넓게) ---------- */
 
-.resume {
-	line-height: 1.85;
-	letter-spacing: 0.03em;
+.resume .resume-summary {
+	margin-bottom: 20px;
 }
 
-/* 제목은 자간을 덜 벌려 덩어리감 유지 */
-.resume h1,
-.resume h3,
-.resume h4,
-.resume .fold-title {
-	letter-spacing: 0.01em;
+.resume .project > p {
+	margin: 0 0 8px;
 }
 
-.resume .chips li {
-	letter-spacing: 0.02em;
+.resume .project-section {
+	margin-top: 48px;
+	padding-top: 40px;
+}
+
+.resume .project-section > .muted {
+	margin-top: 8px;
+}
+
+/* 항목(제목 → 문제 → 해결 목록) 덩어리 사이 */
+.resume .item {
+	margin-top: 44px;
+}
+
+.resume .item-title {
+	margin-bottom: 14px;
+}
+
+.resume .problem {
+	margin-bottom: 20px;
+}
+
+.resume .points li {
+	margin-bottom: 14px;
+}
+
+.resume .points li:last-child {
+	margin-bottom: 0;
+}
+
+.resume .cover-item p {
+	margin-bottom: 24px;
+}
+
+.resume .cover-item + .cover-item {
+	margin-top: 56px;
+	padding-top: 44px;
 }
