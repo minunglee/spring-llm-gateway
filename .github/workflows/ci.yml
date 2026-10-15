@@ -64,7 +64,10 @@ jobs:
         env:
           TARGET: ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}
         run: |
-          scp -i ~/.ssh/deploy_key deploy/compose.prod.yaml deploy/nginx.conf $TARGET:app/
+          ssh -i ~/.ssh/deploy_key $TARGET 'mkdir -p app/nginx sites'
+          scp -i ~/.ssh/deploy_key deploy/compose.prod.yaml $TARGET:app/
+          # 이 저장소 몫의 설정만 올린다 (다른 사이트의 설정 파일은 건드리지 않음)
+          scp -i ~/.ssh/deploy_key deploy/nginx/00-common.conf deploy/nginx/gateway.conf $TARGET:app/nginx/
           ssh -i ~/.ssh/deploy_key $TARGET bash -s <<EOF
             set -e
             cd ~/app
