@@ -64,16 +64,19 @@ public class BudgetGuard {
 		List<String> keys = List.of(totalKey(tier, day), inflightKey(tier, day));
 		long startedNanos = System.nanoTime();
 		long deadline = startedNanos + properties.budgetWait().toNanos();
+		boolean retried = false;
 		while (true) {
 			Long result = redis.execute(reserveScript, keys, String.valueOf(amountMicroUsd),
 					String.valueOf(limitMicroUsd(tier)), String.valueOf(KEY_TTL.toSeconds()));
 			if (result != null && result >= 0) {
-				long waitedMs = (System.nanoTime() - startedNanos) / 1_000_000;
+				// 재시도한 경우에만 기다린 시간으로 친다 (첫 시도의 Redis 처리 시간은 대기가 아니다)
+				long waitedMs = retried ? (System.nanoTime() - startedNanos) / 1_000_000 : 0;
 				return Optional.of(new Reservation(keys.get(0), keys.get(1), amountMicroUsd, waitedMs));
 			}
 			if (result == null || result == EXHAUSTED || System.nanoTime() >= deadline || !sleepBeforeRetry()) {
 				return Optional.empty();
 			}
+			retried = true;
 		}
 	}
 
