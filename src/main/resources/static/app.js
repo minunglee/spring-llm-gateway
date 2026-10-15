@@ -20,7 +20,8 @@ window.onTurnstileLoad = () => {
 
 function turnstileToken() {
 	if (!turnstileBox) return undefined;
-	return turnstileWidget === null ? '' : turnstile.getResponse(turnstileWidget);
+	// 체크 박스가 떠 있는데 아직 체크하지 않았으면 토큰이 없다
+	return turnstileWidget === null ? '' : (turnstile.getResponse(turnstileWidget) || '');
 }
 
 async function refreshBudget() {
@@ -45,7 +46,7 @@ form.addEventListener('submit', async (event) => {
 	error.hidden = true;
 	const token = turnstileToken();
 	if (token === '') {
-		error.textContent = '자동 요청 확인 중입니다. 잠시 후 다시 눌러주세요.';
+		error.textContent = '위의 '사람인지 확인' 체크 박스를 체크한 뒤 다시 보내주세요. 체크 박스가 없다면 잠시 후 다시 눌러주세요.';
 		error.hidden = false;
 		return;
 	}
