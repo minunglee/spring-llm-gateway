@@ -4,6 +4,40 @@ const counter = document.getElementById('counter');
 const submit = document.getElementById('submit');
 const result = document.getElementById('result');
 const error = document.getElementById('error');
+const traceBox = document.getElementById('trace');
+const traceSteps = document.getElementById('trace-steps');
+
+// 게이트웨이가 요청을 처리한 단계를 보여준다 (통과 ✓ / 막힘 ✗ / 해당 없음 –)
+const STATUS = { OK: ['✓', 'ok'], BLOCKED: ['✗', 'blocked'], SKIPPED: ['–', 'skipped'] };
+
+function renderTrace(steps) {
+	if (!traceBox || !Array.isArray(steps) || steps.length === 0) {
+		if (traceBox) traceBox.hidden = true;
+		return;
+	}
+	traceSteps.replaceChildren(...steps.map((step) => {
+		const [icon, cls] = STATUS[step.status] || ['·', 'skipped'];
+		const li = document.createElement('li');
+		li.className = `trace-step ${cls}`;
+		const mark = document.createElement('span');
+		mark.className = 'trace-icon';
+		mark.textContent = icon;
+		const body = document.createElement('span');
+		body.className = 'trace-body';
+		const name = document.createElement('strong');
+		name.textContent = step.name;
+		const detail = document.createElement('span');
+		detail.className = 'trace-detail';
+		detail.textContent = step.detail;
+		body.append(name, detail);
+		const meta = document.createElement('span');
+		meta.className = 'trace-meta';
+		meta.textContent = [step.tech, step.elapsed].filter(Boolean).join(' · ');
+		li.append(mark, body, meta);
+		return li;
+	}));
+	traceBox.hidden = false;
+}
 
 // 봇 확인 위젯 (게스트에게만 있음). 토큰은 한 번만 쓸 수 있어 요청마다 새로 받는다
 const turnstileBox = document.getElementById('turnstile');
@@ -44,6 +78,7 @@ message.addEventListener('input', () => {
 form.addEventListener('submit', async (event) => {
 	event.preventDefault();
 	error.hidden = true;
+	result.hidden = true;
 	const token = turnstileToken();
 	if (token === '') {
 		error.textContent = '위의 "사람인지 확인" 체크 박스를 체크한 뒤 다시 보내주세요. 체크 박스가 없다면 잠시 후 다시 눌러주세요.';
@@ -60,6 +95,7 @@ form.addEventListener('submit', async (event) => {
 			body: JSON.stringify({ message: message.value, turnstileToken: token }),
 		});
 		const body = await response.json();
+		renderTrace(body.trace);
 		if (!response.ok) {
 			const retry = body.retryAfterSeconds ? ` (${formatWait(body.retryAfterSeconds)} 후 가능)` : '';
 			throw new Error((body.detail || '요청을 처리하지 못했습니다.') + retry);

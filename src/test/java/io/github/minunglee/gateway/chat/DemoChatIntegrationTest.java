@@ -58,7 +58,13 @@ class DemoChatIntegrationTest {
 			.andExpect(jsonPath("$.model").value("claude-haiku-5-5"))
 			.andExpect(jsonPath("$.inputTokens").value(2))
 			.andExpect(jsonPath("$.remainingThisHour").value(4))
-			.andExpect(jsonPath("$.remainingToday").value(19));
+			.andExpect(jsonPath("$.remainingToday").value(19))
+			// 게이트웨이가 거친 단계: 봇 확인(로컬은 꺼짐) → 사용량 제한 → 예산 선차감 → AI 호출 → 정산
+			.andExpect(jsonPath("$.trace[*].name").value(org.hamcrest.Matchers.contains("봇 확인", "사용량 제한",
+					"예산 선차감", "AI 호출 (가짜 응답 모드)", "정산")))
+			.andExpect(jsonPath("$.trace[0].status").value("SKIPPED"))
+			.andExpect(jsonPath("$.trace[1].detail").value("이번 시간 4회 · 오늘 19회 남음"))
+			.andExpect(jsonPath("$.trace[4].detail").value(containsString("반환")));
 
 		assertThat(requestLogRepository.findAll()).singleElement().satisfies(log -> {
 			assertThat(log.getStatus()).isEqualTo(RequestLog.Status.SUCCESS);
@@ -77,7 +83,10 @@ class DemoChatIntegrationTest {
 
 		chat("질문", "10.0.0.2").andExpect(status().isTooManyRequests())
 			.andExpect(header().string("Retry-After", "720"))
-			.andExpect(jsonPath("$.detail").value("요청이 너무 많습니다. 잠시 후 다시 시도해주세요."));
+			.andExpect(jsonPath("$.detail").value("요청이 너무 많습니다. 잠시 후 다시 시도해주세요."))
+			// 막힌 경우에도 어느 단계에서 막혔는지 알려준다
+			.andExpect(jsonPath("$.trace[-1].name").value("사용량 제한"))
+			.andExpect(jsonPath("$.trace[-1].status").value("BLOCKED"));
 
 		// 다른 IP는 영향 없음
 		chat("질문", "10.0.0.3").andExpect(status().isOk());
@@ -89,7 +98,9 @@ class DemoChatIntegrationTest {
 
 		chat("질문", "10.0.0.4").andExpect(status().isOk())
 			.andExpect(jsonPath("$.mode").value("demo"))
-			.andExpect(jsonPath("$.answer").value(containsString("예산이 모두 소진")));
+			.andExpect(jsonPath("$.answer").value(containsString("예산이 모두 소진")))
+			.andExpect(jsonPath("$.trace[-1].name").value("예산 선차감"))
+			.andExpect(jsonPath("$.trace[-1].status").value("BLOCKED"));
 
 		assertThat(requestLogRepository.findAll()).singleElement()
 			.satisfies(log -> assertThat(log.getStatus()).isEqualTo(RequestLog.Status.DEGRADED));
@@ -138,7 +149,9 @@ class DemoChatIntegrationTest {
 	void 체험_페이지에_현재_모드를_표시한다() throws Exception {
 		mockMvc.perform(get("/gateway"))
 			.andExpect(status().isOk())
-			.andExpect(content().string(containsString("가짜 응답 모드")));
+			.andExpect(content().string(containsString("가짜 응답 모드")))
+			.andExpect(content().string(containsString("요청 하나가 지나가는 길")))
+			.andExpect(content().string(containsString("게이트웨이가 방금 한 일")));
 	}
 
 	@Test
@@ -146,7 +159,7 @@ class DemoChatIntegrationTest {
 		mockMvc.perform(get("/"))
 			.andExpect(status().isOk())
 			.andExpect(content().string(containsString("이력서 및 경력기술서")))
-			.andExpect(content().string(containsString("LLM Gateway 체험")));
+			.andExpect(content().string(containsString("AI 비용 방어 게이트웨이")));
 	}
 
 	@Test

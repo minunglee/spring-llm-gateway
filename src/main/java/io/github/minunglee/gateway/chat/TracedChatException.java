@@ -1,0 +1,20 @@
+package io.github.minunglee.gateway.chat;
+
+/**
+ * 처리 도중 막힌 요청. 원래 예외(사용량 초과, 봇 확인 실패, AI 호출 실패)와 그때까지의 처리 단계를 함께 담아,
+ * 오류 응답에서도 어느 단계에서 왜 막혔는지 보여준다.
+ */
+class TracedChatException extends RuntimeException {
+
+	private final Trace trace;
+
+	TracedChatException(RuntimeException cause, Trace trace) {
+		super(cause.getMessage(), cause);
+		this.trace = trace;
+	}
+
+	Trace trace() {
+		return trace;
+	}
+
+}

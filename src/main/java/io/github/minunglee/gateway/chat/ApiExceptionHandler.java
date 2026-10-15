@@ -25,6 +25,20 @@ class ApiExceptionHandler {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, message);
 	}
 
+	/** 처리 도중 막힌 요청: 원래 오류 응답에 처리 단계(trace)를 덧붙인다 */
+	@ExceptionHandler(TracedChatException.class)
+	ResponseEntity<ProblemDetail> handleTraced(TracedChatException ex) {
+		ResponseEntity<ProblemDetail> response = switch (ex.getCause()) {
+			case RateLimitExceededException cause -> handleRateLimit(cause);
+			case BotCheckFailedException cause -> ResponseEntity.status(HttpStatus.FORBIDDEN).body(handleBotCheck(cause));
+			case LlmException cause -> ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(handleLlm(cause));
+			default -> ResponseEntity.internalServerError()
+				.body(ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+		};
+		response.getBody().setProperty("trace", ex.trace().steps());
+		return response;
+	}
+
 	@ExceptionHandler(RateLimitExceededException.class)
 	ResponseEntity<ProblemDetail> handleRateLimit(RateLimitExceededException ex) {
 		// 내림하면 클라이언트가 조금 일찍 재시도해서 다시 막히므로 올림한다

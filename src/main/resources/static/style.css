@@ -1371,3 +1371,286 @@ a.link-button {
 		bottom: 16px;
 	}
 }
+
+/* ---------- 프로젝트 소개 페이지 ---------- */
+
+.project-hero {
+	padding: 24px 0 40px;
+}
+
+.project-hero h1 {
+	margin: 8px 0 12px;
+	font-size: 2rem;
+	letter-spacing: -0.02em;
+}
+
+.project-hero .lead {
+	font-size: 1.05rem;
+	color: var(--text);
+}
+
+.hero-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin-top: 8px;
+}
+
+.project-text {
+	margin: 0 0 12px;
+	line-height: 1.8;
+}
+
+.project-page .block-body .points {
+	margin: 4px 0 16px;
+	line-height: 1.8;
+}
+
+/* 요청 처리 흐름: 번호가 붙은 단계를 세로로 잇는다 */
+.flow {
+	counter-reset: flow;
+	margin: 0 0 16px;
+	padding: 0;
+	list-style: none;
+}
+
+.flow li {
+	counter-increment: flow;
+	position: relative;
+	display: grid;
+	grid-template-columns: 7.5em 1fr auto;
+	gap: 4px 16px;
+	align-items: baseline;
+	padding: 12px 0 12px 44px;
+	border-bottom: 1px dashed var(--border);
+}
+
+.flow li:last-child {
+	border-bottom: 0;
+}
+
+.flow li::before {
+	content: counter(flow);
+	position: absolute;
+	left: 0;
+	top: 10px;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--accent) 15%, transparent);
+	color: var(--accent);
+	font-weight: 700;
+	line-height: 28px;
+	text-align: center;
+}
+
+.flow span {
+	color: var(--text-soft);
+	font-size: 0.92rem;
+}
+
+.flow em {
+	color: var(--muted);
+	font-size: 0.85rem;
+	font-style: normal;
+	white-space: nowrap;
+}
+
+/* 핵심 설계 카드 */
+.design-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 16px;
+}
+
+.design {
+	margin: 0;
+	padding: 24px;
+}
+
+.design h3 {
+	margin: 0 0 12px;
+	font-size: 1.05rem;
+	line-height: 1.5;
+}
+
+.design p {
+	margin: 0 0 10px;
+	font-size: 0.92rem;
+	line-height: 1.7;
+}
+
+.design .problem {
+	border-left: 3px solid var(--problem);
+	border-radius: 0 8px 8px 0;
+}
+
+.design .problem .label,
+.project-page .problem .label {
+	color: var(--problem);
+}
+
+/* 성능 수치 */
+.metric-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.metric {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0;
+	padding: 20px 16px;
+}
+
+.metric strong {
+	color: var(--accent);
+	font-size: 1.8rem;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.1;
+}
+
+.metric small {
+	margin-left: 2px;
+	font-size: 0.9rem;
+	font-weight: 600;
+}
+
+.metric span {
+	color: var(--muted);
+	font-size: 0.85rem;
+	line-height: 1.5;
+}
+
+.project-page .item + .item {
+	margin-top: 28px;
+}
+
+.project-page .problem {
+	display: flex;
+	gap: 8px;
+	margin: 0 0 8px;
+	padding: 10px 12px;
+	background: var(--bg);
+	border-radius: 8px;
+	color: var(--muted);
+	font-size: 0.92rem;
+}
+
+.project-page .problem .label {
+	flex-shrink: 0;
+	font-weight: 600;
+}
+
+.project-page code {
+	padding: 1px 6px;
+	background: var(--bg);
+	border-radius: 4px;
+	font-size: 0.88em;
+}
+
+/* 게이트웨이가 방금 한 일 */
+.trace h2 {
+	margin-bottom: 16px;
+}
+
+.trace-steps {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.trace-step {
+	display: grid;
+	grid-template-columns: 24px 1fr auto;
+	gap: 12px;
+	align-items: baseline;
+	padding: 10px 0;
+	border-bottom: 1px solid var(--border);
+}
+
+.trace-step:last-child {
+	border-bottom: 0;
+}
+
+.trace-icon {
+	font-weight: 800;
+	text-align: center;
+}
+
+.trace-step.ok .trace-icon {
+	color: var(--solution);
+}
+
+.trace-step.blocked .trace-icon,
+.trace-step.blocked strong {
+	color: var(--problem);
+}
+
+.trace-step.skipped {
+	opacity: 0.6;
+}
+
+.trace-body {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 12px;
+}
+
+.trace-detail {
+	color: var(--text-soft);
+	font-size: 0.92rem;
+}
+
+.trace-meta {
+	color: var(--muted);
+	font-size: 0.8rem;
+	font-variant-numeric: tabular-nums;
+	white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+	.design-grid,
+	.metric-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.design-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.flow li {
+		grid-template-columns: 1fr;
+	}
+
+	.trace-step {
+		grid-template-columns: 24px 1fr;
+	}
+
+	.trace-meta {
+		grid-column: 2;
+	}
+}
+
+.project-page .resolution {
+	display: flex;
+	gap: 8px;
+	margin: 0;
+	padding: 0 12px;
+	color: var(--text-soft);
+	font-size: 0.92rem;
+}
+
+.project-page .resolution .label {
+	flex-shrink: 0;
+	color: var(--solution);
+	font-weight: 600;
+}
+
+.project-page a:not(.button):not(.link-button):not(.back) {
+	color: var(--accent);
+}

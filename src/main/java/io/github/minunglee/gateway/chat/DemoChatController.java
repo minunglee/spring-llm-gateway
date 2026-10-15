@@ -1,5 +1,7 @@
 package io.github.minunglee.gateway.chat;
 
+import java.util.List;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -41,15 +43,31 @@ class DemoChatController {
 	@PostMapping("/demo/chat")
 	DemoChatResponse chat(@Valid @RequestBody DemoChatRequest request, HttpServletRequest servletRequest) {
 		Requester requester = requesterResolver.resolve(servletRequest);
-		// 게스트만 봇 확인을 한다. 초대코드 사용자는 코드로 이미 확인된 사람이다
-		if (!requester.invited()
-				&& !turnstileVerifier.verify(request.turnstileToken(), servletRequest.getRemoteAddr())) {
-			throw new BotCheckFailedException();
-		}
-		ChatService.ChatResult result = chatService.chat(requester, request.message().strip());
+		Trace trace = new Trace();
+		checkBot(requester, request, servletRequest, trace);
+		ChatService.ChatResult result = chatService.chat(requester, request.message().strip(), trace);
 		return new DemoChatResponse(result.answer(), result.model(), result.mode(), result.inputTokens(),
 				result.outputTokens(), CostCalculator.formatUsd(result.costMicroUsd()), result.latencyMs(),
-				result.remainingThisHour(), result.remainingToday());
+				result.remainingThisHour(), result.remainingToday(), result.trace().steps());
+	}
+
+	/** 게스트만 봇 확인을 한다. 초대코드 사용자는 코드로 이미 확인된 사람이다 */
+	private void checkBot(Requester requester, DemoChatRequest request, HttpServletRequest servletRequest,
+			Trace trace) {
+		if (requester.invited()) {
+			trace.skipped("봇 확인", "초대코드 사용자는 생략", "Cloudflare Turnstile");
+			return;
+		}
+		if (!turnstileVerifier.enabled()) {
+			trace.skipped("봇 확인", "이 환경에서는 꺼져 있음", "Cloudflare Turnstile");
+			return;
+		}
+		long t = System.nanoTime();
+		if (!turnstileVerifier.verify(request.turnstileToken(), servletRequest.getRemoteAddr())) {
+			trace.blocked("봇 확인", "자동화된 요청으로 판단", "Cloudflare Turnstile", t);
+			throw new TracedChatException(new BotCheckFailedException(), trace);
+		}
+		trace.ok("봇 확인", "사람이 보낸 요청으로 확인", "Cloudflare Turnstile", t);
 	}
 
 	/** 체험 페이지에 방문자 등급의 오늘 예산 사용 현황을 보여준다 */
@@ -70,7 +88,7 @@ class DemoChatController {
 	}
 
 	record DemoChatResponse(String answer, String model, String mode, long inputTokens, long outputTokens,
-			String cost, long latencyMs, int remainingThisHour, int remainingToday) {
+			String cost, long latencyMs, int remainingThisHour, int remainingToday, List<Trace.Step> trace) {
 	}
 
 	record BudgetResponse(String used, String limit, double usedPercent) {
