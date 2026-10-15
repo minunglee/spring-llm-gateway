@@ -34,12 +34,15 @@ gateway:
   llm:
     # mock: 가짜 응답(비용 0원) / anthropic: 실제 Claude API 호출
     mode: ${GATEWAY_LLM_MODE:mock}
-    max-tokens: 1024
+    # 데모 답변 최대 길이. 선차감 금액(최대 비용)이 이 값에 비례하므로 데모에 필요한 만큼만 둔다
+    max-tokens: 512
     mock-latency: 300ms
     anthropic-api-key: ${ANTHROPIC_API_KEY:}
   limit:
     ip-salt: ${GATEWAY_IP_SALT:local-dev-salt}
     zone: Asia/Seoul
+    # 예산 칸이 진행 중인 요청들의 선차감으로 차 있으면, 정산되며 자리가 나길 최대 이만큼 기다린다
+    budget-wait: 3s
     # 등급별 정책. 예산은 등급마다 따로 잡아 게스트가 몰려도 초대코드 사용자 몫이 남게 한다 (합계 하루 $1)
     guest:
       model: claude-haiku-5-5

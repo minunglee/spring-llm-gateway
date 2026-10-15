@@ -94,7 +94,9 @@ class DemoChatIntegrationTest {
 
 	@Test
 	void 예산이_소진되면_LLM을_호출하지_않고_데모_응답을_준다() throws Exception {
-		budgetGuard.reserve(Tier.GUEST, budgetGuard.limitMicroUsd(Tier.GUEST)).orElseThrow();
+		// 실제로 예산을 다 쓴 상태 (선차감 후 같은 금액으로 정산)
+		budgetGuard.settle(budgetGuard.reserve(Tier.GUEST, budgetGuard.limitMicroUsd(Tier.GUEST)).orElseThrow(),
+				budgetGuard.limitMicroUsd(Tier.GUEST));
 
 		chat("질문", "10.0.0.4").andExpect(status().isOk())
 			.andExpect(jsonPath("$.mode").value("demo"))

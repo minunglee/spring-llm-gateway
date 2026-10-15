@@ -1,6 +1,7 @@
 package io.github.minunglee.gateway.limit;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.ZoneId;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -12,9 +13,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param zone 하루 경계를 정하는 시간대
  * @param guest 게스트 등급 정책
  * @param invite 초대코드 등급 정책
+ * @param budgetWait 진행 중인 요청들 때문에 예산 칸이 꽉 찼을 때, 정산으로 자리가 나길 기다리는 최대 시간
  */
 @ConfigurationProperties("gateway.limit")
-public record LimitProperties(String ipSalt, ZoneId zone, TierPolicy guest, TierPolicy invite) {
+public record LimitProperties(String ipSalt, ZoneId zone, TierPolicy guest, TierPolicy invite,
+		Duration budgetWait) {
 
 	public TierPolicy policy(Tier tier) {
 		return switch (tier) {

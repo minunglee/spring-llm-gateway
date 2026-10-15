@@ -5,6 +5,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -18,6 +19,10 @@ import org.springframework.stereotype.Component;
  * 응답의 실제 사용량으로 차액을 돌려준다(settle). 호출이 실패하면 전액 돌려준다(refund).
  * 이렇게 하면 동시에 수백 건이 들어와도 예산을 넘는 호출은 시작조차 되지 않는다.
  * <p>
+ * 최대 비용으로 잡아두기 때문에 요청이 몰리면 실제로 쓴 돈은 적어도 예산 칸이 일시적으로 꽉 찬다.
+ * 그래서 "실제로 돈을 다 쓴 경우"와 "진행 중인 요청들이 칸을 잡고 있는 경우"를 구분해, 후자는
+ * 다른 요청이 정산하며 돌려주는 예산을 잠깐 기다렸다가 다시 시도한다. 가상 스레드라 기다리는 비용이 작다.
+ * <p>
  * 예산은 등급마다 따로 둔다. 게스트가 몰려 예산을 다 써도 초대코드 사용자(면접관) 몫은 남는다.
  */
 @Component
@@ -25,8 +30,18 @@ public class BudgetGuard {
 
 	private static final Duration KEY_TTL = Duration.ofDays(2);
 
+	/** 자리가 나길 기다릴 때 다시 시도하는 간격 (여러 요청이 한꺼번에 몰리지 않도록 조금씩 흔든다) */
+	private static final long RETRY_MIN_MS = 20;
+
+	private static final long RETRY_JITTER_MS = 30;
+
+	private static final long EXHAUSTED = -1;
+
 	private final RedisScript<Long> reserveScript = RedisScript
 		.of(new ClassPathResource("scripts/budget_reserve.lua"), Long.class);
+
+	private final RedisScript<Long> settleScript = RedisScript.of(new ClassPathResource("scripts/budget_settle.lua"),
+			Long.class);
 
 	private final StringRedisTemplate redis;
 
@@ -40,42 +55,77 @@ public class BudgetGuard {
 		this.clock = clock;
 	}
 
+	/**
+	 * 선차감을 시도한다. 진행 중인 요청들 때문에 자리가 없으면 최대 {@code budgetWait}까지 기다리며 다시 시도하고,
+	 * 실제 비용만으로 한도를 넘었으면 바로 포기한다.
+	 */
 	public Optional<Reservation> reserve(Tier tier, long amountMicroUsd) {
-		String key = todayKey(tier);
-		Long remaining = redis.execute(reserveScript, List.of(key), String.valueOf(amountMicroUsd),
-				String.valueOf(limitMicroUsd(tier)), String.valueOf(KEY_TTL.toSeconds()));
-		if (remaining == null || remaining < 0) {
-			return Optional.empty();
+		String day = LocalDate.now(clock.withZone(properties.zone())).toString();
+		List<String> keys = List.of(totalKey(tier, day), inflightKey(tier, day));
+		long startedNanos = System.nanoTime();
+		long deadline = startedNanos + properties.budgetWait().toNanos();
+		while (true) {
+			Long result = redis.execute(reserveScript, keys, String.valueOf(amountMicroUsd),
+					String.valueOf(limitMicroUsd(tier)), String.valueOf(KEY_TTL.toSeconds()));
+			if (result != null && result >= 0) {
+				long waitedMs = (System.nanoTime() - startedNanos) / 1_000_000;
+				return Optional.of(new Reservation(keys.get(0), keys.get(1), amountMicroUsd, waitedMs));
+			}
+			if (result == null || result == EXHAUSTED || System.nanoTime() >= deadline || !sleepBeforeRetry()) {
+				return Optional.empty();
+			}
 		}
-		return Optional.of(new Reservation(key, amountMicroUsd));
 	}
 
 	/** 실제 비용으로 정산한다. 선차감액보다 적게 나오면 차액이 예산으로 돌아간다. */
 	public void settle(Reservation reservation, long actualMicroUsd) {
-		long delta = actualMicroUsd - reservation.amountMicroUsd();
-		if (delta != 0) {
-			redis.opsForValue().increment(reservation.key(), delta);
-		}
+		redis.execute(settleScript, List.of(reservation.totalKey(), reservation.inflightKey()),
+				String.valueOf(reservation.amountMicroUsd()), String.valueOf(actualMicroUsd));
 	}
 
 	public void refund(Reservation reservation) {
-		redis.opsForValue().decrement(reservation.key(), reservation.amountMicroUsd());
+		settle(reservation, 0);
 	}
 
+	/** 오늘 실제로 쓴 금액 (정산 전 선차감액은 빼고) */
 	public long usedTodayMicroUsd(Tier tier) {
-		String value = redis.opsForValue().get(todayKey(tier));
-		return value == null ? 0 : Long.parseLong(value);
+		String day = LocalDate.now(clock.withZone(properties.zone())).toString();
+		return parse(redis.opsForValue().get(totalKey(tier, day)))
+				- parse(redis.opsForValue().get(inflightKey(tier, day)));
 	}
 
 	public long limitMicroUsd(Tier tier) {
 		return properties.policy(tier).dailyBudgetMicroUsd();
 	}
 
-	private String todayKey(Tier tier) {
-		return "budget:" + tier.name().toLowerCase() + ":" + LocalDate.now(clock.withZone(properties.zone()));
+	private static long parse(String value) {
+		return value == null ? 0 : Long.parseLong(value);
 	}
 
-	public record Reservation(String key, long amountMicroUsd) {
+	private static String totalKey(Tier tier, String day) {
+		return "budget:" + tier.name().toLowerCase() + ":" + day;
+	}
+
+	private static String inflightKey(Tier tier, String day) {
+		return "budget-inflight:" + tier.name().toLowerCase() + ":" + day;
+	}
+
+	/** @return 중단(interrupt)되면 false */
+	private static boolean sleepBeforeRetry() {
+		try {
+			Thread.sleep(RETRY_MIN_MS + ThreadLocalRandom.current().nextLong(RETRY_JITTER_MS));
+			return true;
+		}
+		catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			return false;
+		}
+	}
+
+	/**
+	 * @param waitedMs 자리가 나길 기다린 시간 (바로 확보했으면 0)
+	 */
+	public record Reservation(String totalKey, String inflightKey, long amountMicroUsd, long waitedMs) {
 	}
 
 }
