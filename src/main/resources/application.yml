@@ -3,7 +3,8 @@ spring:
     name: spring-llm-gateway
   config:
     # 로컬 비밀값(.env)은 Git에 올리지 않는다. .env.example 참고
-    import: optional:file:.env[.properties]
+    # 테스트는 로컬 .env의 영향을 받지 않도록 GATEWAY_ENV_FILE로 다른 경로를 가리킨다 (build.gradle)
+    import: optional:file:${GATEWAY_ENV_FILE:.env}[.properties]
   threads:
     virtual:
       enabled: true

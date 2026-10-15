@@ -51,4 +51,6 @@ tasks.named('jar') {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	// 로컬 .env(실제 키, 봇 확인 키 등)를 테스트에서 읽지 않는다
+	systemProperty 'GATEWAY_ENV_FILE', 'build/no-local-env'
 }
