@@ -15,6 +15,9 @@ jobs:
           distribution: temurin
           java-version: 21
       - uses: gradle/actions/setup-gradle@v5
+      # 화면 스크립트 문법 오류는 서버 테스트로 잡히지 않으므로 따로 검사한다
+      - name: JavaScript 문법 검사
+        run: for f in src/main/resources/static/*.js; do node --check "$f"; done
       # 통합 테스트는 Testcontainers로 실제 PostgreSQL·Redis를 띄워 실행한다
       - run: ./gradlew build
       - uses: actions/upload-artifact@v4
