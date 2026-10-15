@@ -1,0 +1,49 @@
+# 부하 테스트 전용 복제본. 운영과 같은 이미지·같은 메모리 한도로 띄우되 별도 DB·Redis를 쓴다.
+# - AI는 가짜 응답(비용 0원), 봇 확인 꺼짐, 사용량 한도는 충분히 크게
+# - 앱 포트는 서버 내부(127.0.0.1)에만 열어 외부에서 접근할 수 없다
+# 사용법: loadtest/README.md 참고. 테스트가 끝나면 down -v 로 모두 지운다.
+name: loadtest
+
+services:
+  app:
+    image: ghcr.io/minunglee/spring-llm-gateway:${IMAGE_TAG:?IMAGE_TAG is required}
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gateway
+      SPRING_DATASOURCE_USERNAME: gateway
+      SPRING_DATASOURCE_PASSWORD: loadtest
+      SPRING_DATA_REDIS_HOST: redis
+      GATEWAY_LLM_MODE: mock
+      # AI 응답 대기 시간 흉내 (시나리오마다 바꾼다)
+      GATEWAY_LLM_MOCKLATENCY: ${MOCK_LATENCY:-0ms}
+      # 가상 스레드 켜기/끄기 비교
+      SPRING_THREADS_VIRTUAL_ENABLED: ${VIRTUAL_THREADS:-true}
+      GATEWAY_IP_SALT: loadtest
+      GATEWAY_COOKIE_SECRET: loadtest
+      GATEWAY_LIMIT_GUEST_HOURLY: 100000000
+      GATEWAY_LIMIT_GUEST_DAILY: 100000000
+      GATEWAY_LIMIT_GUEST_DAILYBUDGETUSD: ${GUEST_BUDGET_USD:-1000}
+    ports:
+      - "127.0.0.1:8090:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    mem_limit: 768m
+
+  postgres:
+    image: postgres:16-alpine
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=30"]
+    environment:
+      POSTGRES_DB: gateway
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: loadtest
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gateway -d gateway"]
+      interval: 3s
+      retries: 20
+    mem_limit: 256m
+
+  redis:
+    image: redis:7-alpine
+    mem_limit: 64m

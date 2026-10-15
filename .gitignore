@@ -44,3 +44,6 @@ out/
 
 ### 이력서 원본 (서버에만 보관, Git에 올리지 않음) ###
 /private/
+
+### 부하 테스트 원본 결과 ###
+/loadtest/results/
