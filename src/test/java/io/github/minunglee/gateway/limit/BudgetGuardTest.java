@@ -91,6 +91,11 @@ class BudgetGuardTest {
 	}
 
 	@Test
+	void 바로_확보하면_기다린_시간은_0이다() {
+		assertThat(budgetGuard.reserve(Tier.GUEST, 100).orElseThrow().waitedMs()).isZero();
+	}
+
+	@Test
 	void 실제로_쓴_돈이_한도에_닿았으면_기다리지_않고_바로_포기한다() {
 		BudgetGuard.Reservation reservation = budgetGuard.reserve(Tier.GUEST, 1_000).orElseThrow();
 		budgetGuard.settle(reservation, 1_000);
