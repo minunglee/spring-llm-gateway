@@ -70,51 +70,75 @@ public class ChatService {
 		this.clock = clock;
 	}
 
-	public ChatResult chat(Requester requester, String message) {
+	public ChatResult chat(Requester requester, String message, Trace trace) {
 		Instant startedAt = clock.instant();
 		LlmRequest request = new LlmRequest(requester.model(), message, llmProperties.maxTokens());
+		long reserveAmount = maxCostMicroUsd(request);
 
 		RateLimitResult limit;
 		Optional<BudgetGuard.Reservation> reservation;
 		try {
+			long t = System.nanoTime();
 			limit = rateLimiter.tryAcquire(requester.rateKey(), requester.hourly(), requester.daily());
 			if (!limit.allowed()) {
-				throw new RateLimitExceededException(limit);
+				trace.blocked("사용량 제한", limit.dailyLimitReached() ? "오늘 사용 횟수를 모두 사용함" : "이번 시간 한도 초과",
+						"Redis Lua 토큰 버킷", t);
+				throw new TracedChatException(new RateLimitExceededException(limit), trace);
 			}
+			trace.ok("사용량 제한", "이번 시간 %d회 · 오늘 %d회 남음".formatted(limit.remainingThisHour(),
+					limit.remainingToday()), "Redis Lua 토큰 버킷", t);
 			if (killSwitch.isOn()) {
-				return degraded(requester, request, limit, startedAt, Degraded.KILL_SWITCH);
+				trace.blocked("긴급 차단", "관리자가 AI 호출을 멈춤 → 데모 응답", "Redis 스위치", 0);
+				return degraded(requester, request, limit, startedAt, Degraded.KILL_SWITCH, trace);
 			}
-			reservation = budgetGuard.reserve(requester.tier(), maxCostMicroUsd(request));
+			t = System.nanoTime();
+			reservation = budgetGuard.reserve(requester.tier(), reserveAmount);
+			if (reservation.isEmpty()) {
+				trace.blocked("예산 선차감", "오늘 예산 소진 → AI를 호출하지 않고 데모 응답", "Redis Lua", t);
+				return degraded(requester, request, limit, startedAt, Degraded.BUDGET_EXHAUSTED, trace);
+			}
+			trace.ok("예산 선차감", CostCalculator.formatUsd(reserveAmount) + " 확보 (나올 수 있는 최대 비용)", "Redis Lua",
+					t);
 		}
 		catch (DataAccessException ex) {
 			log.error("Redis 장애로 사용량·예산을 확인할 수 없어 데모 응답으로 전환합니다", ex);
-			return degraded(requester, request, null, startedAt, Degraded.GUARD_UNAVAILABLE);
-		}
-		if (reservation.isEmpty()) {
-			return degraded(requester, request, limit, startedAt, Degraded.BUDGET_EXHAUSTED);
+			trace.blocked("사용량·예산 확인", "Redis 응답 없음 → 비용 통제 불가라 AI 호출 차단", "fail-closed", 0);
+			return degraded(requester, request, null, startedAt, Degraded.GUARD_UNAVAILABLE, trace);
 		}
 
 		LlmResponse response;
+		long t = System.nanoTime();
 		try {
 			response = llmClient.complete(request);
 		}
 		catch (LlmException ex) {
 			budgetGuard.refund(reservation.get());
+			trace.blocked("Claude 호출", "실패 → 선차감한 " + CostCalculator.formatUsd(reserveAmount) + " 전액 반환",
+					request.model(), t);
 			requestLogRepository.save(new RequestLog(requester, llmClient.mode(), request.model(),
 					RequestLog.Status.ERROR, 0, 0, 0, elapsedMs(startedAt), startedAt));
-			throw ex;
+			throw new TracedChatException(ex, trace);
 		}
+		boolean mock = "mock".equals(llmClient.mode());
+		trace.ok(mock ? "AI 호출 (가짜 응답 모드)" : "Claude 호출",
+				"%s · 입력 %,d · 출력 %,d 토큰".formatted(response.model(), response.inputTokens(),
+						response.outputTokens()),
+				mock ? "비용 0원 테스트 모드" : "Anthropic Java SDK", t);
 
 		long costMicroUsd = costCalculator.costMicroUsd(response.model(), response.inputTokens(),
 				response.outputTokens());
+		t = System.nanoTime();
 		budgetGuard.settle(reservation.get(), costMicroUsd);
+		trace.ok("정산", "실제 %s 사용 → %s 반환".formatted(CostCalculator.formatUsd(costMicroUsd),
+				CostCalculator.formatUsd(reserveAmount - costMicroUsd)), "Redis INCRBY", t);
 		long latencyMs = elapsedMs(startedAt);
 		requestLogRepository.save(new RequestLog(requester, llmClient.mode(), response.model(),
 				RequestLog.Status.SUCCESS, response.inputTokens(), response.outputTokens(), costMicroUsd, latencyMs,
 				startedAt));
 
 		return new ChatResult(response.text(), response.model(), llmClient.mode(), response.inputTokens(),
-				response.outputTokens(), costMicroUsd, latencyMs, limit.remainingThisHour(), limit.remainingToday());
+				response.outputTokens(), costMicroUsd, latencyMs, limit.remainingThisHour(), limit.remainingToday(),
+				trace);
 	}
 
 	/** 나올 수 있는 최대 비용. 입력은 상한 추정치, 출력은 max_tokens 전부를 쓴다고 가정한다 */
@@ -125,14 +149,14 @@ public class ChatService {
 	}
 
 	private ChatResult degraded(Requester requester, LlmRequest request, RateLimitResult limit, Instant startedAt,
-			Degraded reason) {
+			Degraded reason, Trace trace) {
 		long latencyMs = elapsedMs(startedAt);
 		requestLogRepository.save(new RequestLog(requester, "demo", request.model(), RequestLog.Status.DEGRADED, 0,
 				0, 0, latencyMs, startedAt));
 		int remainingThisHour = limit == null ? 0 : limit.remainingThisHour();
 		int remainingToday = limit == null ? 0 : limit.remainingToday();
 		return new ChatResult(reason.message, request.model(), "demo", 0, 0, 0, latencyMs, remainingThisHour,
-				remainingToday);
+				remainingToday, trace);
 	}
 
 	private long elapsedMs(Instant startedAt) {
@@ -154,7 +178,7 @@ public class ChatService {
 	}
 
 	public record ChatResult(String answer, String model, String mode, long inputTokens, long outputTokens,
-			long costMicroUsd, long latencyMs, int remainingThisHour, int remainingToday) {
+			long costMicroUsd, long latencyMs, int remainingThisHour, int remainingToday, Trace trace) {
 	}
 
 }

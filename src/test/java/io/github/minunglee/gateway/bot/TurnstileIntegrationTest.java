@@ -57,12 +57,16 @@ class TurnstileIntegrationTest {
 	@Test
 	void 게스트가_봇_확인_토큰_없이_보내면_거부한다() throws Exception {
 		chat(null, null).andExpect(status().isForbidden())
-			.andExpect(jsonPath("$.detail").value(containsString("자동화된 요청")));
+			.andExpect(jsonPath("$.detail").value(containsString("자동화된 요청")))
+			.andExpect(jsonPath("$.trace[0].name").value("봇 확인"))
+			.andExpect(jsonPath("$.trace[0].status").value("BLOCKED"));
 	}
 
 	@Test
 	void 확인된_토큰이면_통과한다() throws Exception {
-		chat("valid-token", null).andExpect(status().isOk()).andExpect(jsonPath("$.mode").value("mock"));
+		chat("valid-token", null).andExpect(status().isOk())
+			.andExpect(jsonPath("$.mode").value("mock"))
+			.andExpect(jsonPath("$.trace[0].status").value("OK"));
 	}
 
 	@Test
