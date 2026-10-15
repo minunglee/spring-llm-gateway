@@ -61,7 +61,10 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # 사이트별 설정 파일 폴더 (00-common.conf, gateway.conf, jipdon 저장소의 jipdon.conf)
+      - ./nginx:/etc/nginx/conf.d:ro
+      # 다른 저장소가 배포하는 정적 사이트 (예: /var/www/sites/jipdon/current)
+      - /home/deploy/sites:/var/www/sites:ro
       # 인증서는 서버의 certbot이 관리한다 (발급·갱신 확인 파일은 certbot-www)
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./certbot-www:/var/www/certbot:ro

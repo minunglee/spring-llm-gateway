@@ -113,6 +113,7 @@ flowchart LR
 | 서버 | 카페24 가상서버 (vCPU 4, RAM 2GB, Ubuntu 24.04), Docker Compose |
 | 메모리 한도 | 앱 768MB(힙 512MB, Metaspace 256MB), PostgreSQL 256MB, Redis 64MB, Nginx 32MB |
 | 배포 | `main` 머지 → GitHub Actions: 테스트·JS 문법 검사 → 이미지 빌드(ghcr.io) → SSH 배포 → 헬스 체크 |
+| Nginx | 사이트별 설정 파일(`deploy/nginx/`). 같은 서버의 다른 사이트(jipdon.com)는 그 저장소가 자기 설정 파일만 배포 |
 | 보안 | SSH 키 로그인만, 배포 전용 계정(sudo 없음), 방화벽 22/80/443, fail2ban, DB·Redis 외부 포트 없음 |
 | 비밀값 | API 키·DB 비밀번호·이력서 원본은 서버에만 (Git에 없음) |
 
@@ -129,7 +130,7 @@ src/main/java/io/github/minunglee/gateway/
 └─ portal/    포트폴리오 메인, 이력서 페이지
 src/main/resources/scripts/   rate_limit.lua, budget_reserve.lua, budget_settle.lua
 loadtest/                     k6 시나리오, 테스트 전용 복제본, 결과 문서
-deploy/                       운영 compose, Nginx
+deploy/                       운영 compose, Nginx(사이트별 설정)
 ```
 
 ## 실행과 테스트
