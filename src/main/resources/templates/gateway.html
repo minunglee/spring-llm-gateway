@@ -36,6 +36,9 @@
 		<label for="message">질문</label>
 		<textarea id="message" name="message" rows="4" maxlength="2000"
 				  placeholder="예: Redis Lua 스크립트가 원자적인 이유를 설명해줘"></textarea>
+		<!-- 게스트 봇 확인 (대부분 클릭 없이 자동 통과, 의심스러울 때만 체크 박스 표시) -->
+		<div th:if="${turnstileSiteKey != null}" id="turnstile" class="turnstile"
+			 th:attr="data-sitekey=${turnstileSiteKey}"></div>
 		<div class="form-footer">
 			<span id="counter">0 / 2,000</span>
 			<button type="submit" id="submit">보내기</button>
@@ -59,5 +62,7 @@
 	<section th:replace="~{fragments :: invite(${requester})}"></section>
 </main>
 <script th:src="@{/app.js}"></script>
+<script th:if="${turnstileSiteKey != null}"
+		src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" async defer></script>
 </body>
 </html>

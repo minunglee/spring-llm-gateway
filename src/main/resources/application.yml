@@ -57,6 +57,10 @@ gateway:
   admin:
     # 비어 있으면 관리자 API(/admin/**)를 막는다
     token: ${GATEWAY_ADMIN_TOKEN:}
+  turnstile:
+    # Cloudflare Turnstile 봇 확인. 둘 다 있어야 켜진다 (비밀 키는 서버 .env에만)
+    site-key: ${GATEWAY_TURNSTILE_SITE_KEY:}
+    secret-key: ${GATEWAY_TURNSTILE_SECRET_KEY:}
   resume:
     # 이력서 원본(resume.json, resume.pdf) 폴더. Git에 올리지 않는다
     dir: ${GATEWAY_RESUME_DIR:private}
