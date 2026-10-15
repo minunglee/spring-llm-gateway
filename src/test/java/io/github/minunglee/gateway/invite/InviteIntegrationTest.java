@@ -115,7 +115,9 @@ class InviteIntegrationTest {
 	@Test
 	void 게스트_예산이_소진돼도_초대코드_사용자는_쓸_수_있다() throws Exception {
 		Cookie invite = redeem(createInvite("E사", 100), "10.1.0.8");
-		budgetGuard.reserve(Tier.GUEST, budgetGuard.limitMicroUsd(Tier.GUEST)).orElseThrow();
+		// 실제로 예산을 다 쓴 상태 (선차감 후 같은 금액으로 정산)
+		budgetGuard.settle(budgetGuard.reserve(Tier.GUEST, budgetGuard.limitMicroUsd(Tier.GUEST)).orElseThrow(),
+				budgetGuard.limitMicroUsd(Tier.GUEST));
 
 		chat(null, "10.1.0.9").andExpect(jsonPath("$.mode").value("demo"));
 		chat(invite, "10.1.0.8").andExpect(jsonPath("$.mode").value("mock"));

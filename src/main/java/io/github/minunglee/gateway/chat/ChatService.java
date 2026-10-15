@@ -97,8 +97,11 @@ public class ChatService {
 				trace.blocked("예산 선차감", "오늘 예산 소진 → AI를 호출하지 않고 데모 응답", "Redis Lua", t);
 				return degraded(requester, request, limit, startedAt, Degraded.BUDGET_EXHAUSTED, trace);
 			}
-			trace.ok("예산 선차감", CostCalculator.formatUsd(reserveAmount) + " 확보 (나올 수 있는 최대 비용)", "Redis Lua",
-					t);
+			long waitedMs = reservation.get().waitedMs();
+			trace.ok("예산 선차감",
+					CostCalculator.formatUsd(reserveAmount) + " 확보 (나올 수 있는 최대 비용)"
+							+ (waitedMs > 0 ? " · 다른 요청 정산을 %,dms 기다림".formatted(waitedMs) : ""),
+					"Redis Lua", t);
 		}
 		catch (DataAccessException ex) {
 			log.error("Redis 장애로 사용량·예산을 확인할 수 없어 데모 응답으로 전환합니다", ex);

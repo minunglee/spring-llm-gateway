@@ -84,7 +84,7 @@
 			<article class="card design">
 				<h3>최대 비용 선차감 → 실제 비용 정산</h3>
 				<p class="problem"><span class="label">문제</span><span>AI 응답이 오기 전에는 비용을 알 수 없음</span></p>
-				<p>최악의 비용을 먼저 잡고, 응답의 실제 토큰 수로 차액을 돌려줌. <strong>동시 200건 테스트에서 한도 초과 0건</strong></p>
+				<p>최악의 비용을 먼저 잡고, 응답의 실제 토큰 수로 차액을 돌려줌. 요청이 몰려 칸이 일시적으로 차면 정산을 잠깐 기다려 재시도. <strong>한도 초과 0건, 예산 활용 17.5% → 92%</strong></p>
 			</article>
 			<article class="card design">
 				<h3>가상 스레드로 느린 응답 대기</h3>
@@ -130,6 +130,11 @@
 				<p class="item-title">실제 Claude 첫 호출 직후 앱이 재시작됨</p>
 				<p class="problem"><span class="label">원인</span><span>Metaspace 한도 128MB인데 Anthropic SDK 로딩 후 124MB 사용. 가짜 응답 부하 테스트로는 드러나지 않음</span></p>
 				<p class="resolution"><span class="label">해결</span><span>운영 로그에서 발견 → 로컬에서 실제 모드로 <code>jcmd VM.metaspace</code> 실측 → 한도 256MB</span></p>
+			</div>
+			<div class="item">
+				<p class="item-title">요청이 몰리면 예산의 18%만 쓰고도 "예산 소진"</p>
+				<p class="problem"><span class="label">원인</span><span>최대 비용 선차감이 정산 전까지 예산 칸을 차지. 부하 테스트에서 1,000건 중 897건이 데모 응답</span></p>
+				<p class="resolution"><span class="label">해결</span><span>진행 중 선차감을 따로 집계해 "일시적으로 꽉 참"이면 정산을 최대 3초 기다림 + 답변 길이 512로 선차감액 절반 → AI 처리 103건 → 540건</span></p>
 			</div>
 			<div class="item">
 				<p class="item-title">서버를 재시작했더니 예전 버전이 뜸</p>

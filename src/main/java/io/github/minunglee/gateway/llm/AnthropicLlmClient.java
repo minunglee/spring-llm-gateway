@@ -46,6 +46,10 @@ public class AnthropicLlmClient implements LlmClient {
 				.flatMap(block -> block.text().stream())
 				.map(textBlock -> textBlock.text())
 				.collect(Collectors.joining()));
+		// 데모는 답변 길이(max_tokens)를 제한하므로, 잘렸으면 알려준다
+		if (message.stopReason().filter(StopReason.MAX_TOKENS::equals).isPresent()) {
+			text = text + "\n\n(데모라 답변 길이를 제한해 여기까지만 표시합니다)";
+		}
 
 		return new LlmResponse(text, request.model(), message.usage().inputTokens(), message.usage().outputTokens());
 	}
