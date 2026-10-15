@@ -28,7 +28,7 @@
 ## 요청 하나가 지나가는 길
 
 ```mermaid
-flowchart LR
+flowchart TD
     A([요청]) --> B{봇 확인<br/>Turnstile}
     B -- 실패 --> X1[403]
     B -- 통과 --> C{사용량 제한<br/>Redis Lua}
