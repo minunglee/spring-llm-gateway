@@ -169,7 +169,8 @@ class DemoChatIntegrationTest {
 	void 집돈_계산기_소개_페이지에서_실제_사이트로_갈_수_있다() throws Exception {
 		mockMvc.perform(get("/jipdon"))
 			.andExpect(status().isOk())
-			.andExpect(content().string(containsString("서버 한 대에 서비스 두 개")))
+			.andExpect(content().string(containsString("서버 한 대에 서비스 셋")))
+			.andExpect(content().string(containsString("실거래가 서버 설계 4가지")))
 			.andExpect(content().string(containsString("href=\"https://jipdon.com\"")));
 	}
 
