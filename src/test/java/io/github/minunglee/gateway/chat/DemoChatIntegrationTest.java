@@ -161,7 +161,16 @@ class DemoChatIntegrationTest {
 		mockMvc.perform(get("/"))
 			.andExpect(status().isOk())
 			.andExpect(content().string(containsString("이력서 및 경력기술서")))
-			.andExpect(content().string(containsString("AI 비용 방어 게이트웨이")));
+			.andExpect(content().string(containsString("AI 비용 방어 게이트웨이")))
+			.andExpect(content().string(containsString("href=\"/jipdon\"")));
+	}
+
+	@Test
+	void 집돈_계산기_소개_페이지에서_실제_사이트로_갈_수_있다() throws Exception {
+		mockMvc.perform(get("/jipdon"))
+			.andExpect(status().isOk())
+			.andExpect(content().string(containsString("서버 한 대에 서비스 두 개")))
+			.andExpect(content().string(containsString("href=\"https://jipdon.com\"")));
 	}
 
 	@Test
