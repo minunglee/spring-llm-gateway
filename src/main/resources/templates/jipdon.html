@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>집돈 계산기 | 이민웅</title>
-	<meta name="description" content="대출·전세·중개보수·DSR·투자 계산을 계산식과 법령 근거까지 보여주는 계산기 사이트. jipdon.com에서 운영 중">
+	<meta name="description" content="대출·전세·중개보수·DSR·투자 계산기와, 국토부 실거래가로 전세가율을 계산하는 Spring 서버. jipdon.com에서 운영 중">
 	<link rel="stylesheet" th:href="@{/style.css}">
 </head>
 <body>
@@ -15,13 +15,16 @@
 	<header class="project-hero">
 		<span class="fold-label">PROJECT 02 · JIPDON</span>
 		<h1>집돈 계산기</h1>
-		<p class="lead">집·대출·차처럼 큰돈이 드는 계산을, 결과뿐 아니라 <strong>계산식과 법령 근거</strong>까지 보여주는 계산기 사이트. 실제 도메인에서 운영 중입니다.</p>
+		<p class="lead">집·대출·차처럼 큰돈이 드는 계산을, 결과뿐 아니라 <strong>계산식과 법령 근거</strong>까지 보여주는 계산기 사이트. 실제 도메인에서 운영 중입니다.<br>2단계로 <strong>국토교통부 실거래가를 수집하는 Spring 서버</strong>를 붙여, 계약하려는 집의 전세가율(깡통전세 위험)을 보여줍니다.</p>
 		<ul class="chips small">
-			<li>Astro</li><li>TypeScript</li><li>Vitest</li><li>Nginx</li><li>GitHub Actions</li><li>SEO · 구조화 데이터</li>
+			<li>Java 21</li><li>Spring Boot 4</li><li>PostgreSQL</li><li>Redis</li><li>공공데이터 수집 배치</li>
+			<li>Astro</li><li>TypeScript</li><li>Nginx</li><li>GitHub Actions</li><li>SEO · 구조화 데이터</li>
 		</ul>
 		<div class="hero-actions">
 			<a class="button" href="https://jipdon.com" target="_blank" rel="noopener">집돈 계산기 사용해보기 ↗</a>
-			<a class="link-button" href="https://github.com/minunglee/jipdon" target="_blank" rel="noopener">GitHub</a>
+			<a class="link-button" href="https://jipdon.com/jeonse-risk/" target="_blank" rel="noopener">전세 위험 확인 ↗</a>
+			<a class="link-button" href="https://github.com/minunglee/jipdon-api" target="_blank" rel="noopener">GitHub (서버)</a>
+			<a class="link-button" href="https://github.com/minunglee/jipdon" target="_blank" rel="noopener">GitHub (화면)</a>
 		</div>
 	</header>
 
@@ -49,11 +52,12 @@
 		<div class="block-title">
 			<span class="fold-head">
 				<span class="fold-label">FEATURES</span>
-				<span class="fold-name">계산기 7종</span>
+				<span class="fold-name">전세 위험 확인 + 계산기 7종</span>
 			</span>
 		</div>
 		<div class="card block-body">
 			<ul class="points">
+				<li><a href="https://jipdon.com/jeonse-risk/" target="_blank" rel="noopener"><strong>전세 위험 확인</strong></a>: 수도권 아파트·빌라를 검색하면 면적별 최근 매매·전세 중앙값, 전세가율과 위험 구간, 근거 거래를 보여주고, 내 보증금 기준 전세가율도 계산 <em>(2단계 · Spring 서버)</em></li>
 				<li><a href="https://jipdon.com/loan/" target="_blank" rel="noopener"><strong>대출 상환</strong></a>: 원리금균등·원금균등·만기일시 비교, 월별 상환표</li>
 				<li><a href="https://jipdon.com/jeonse-loan/" target="_blank" rel="noopener"><strong>전세대출 이자</strong></a>: 월 이자, 보증료 포함 총비용</li>
 				<li><a href="https://jipdon.com/brokerage-fee/" target="_blank" rel="noopener"><strong>중개보수(복비)</strong></a>: 공인중개사법 시행규칙 상한 요율·한도, 월세 거래금액 환산(×100 / ×70)</li>
@@ -70,7 +74,7 @@
 		<div class="block-title">
 			<span class="fold-head">
 				<span class="fold-label">ARCHITECTURE</span>
-				<span class="fold-name">서버 한 대에 서비스 두 개</span>
+				<span class="fold-name">서버 한 대에 서비스 셋</span>
 			</span>
 		</div>
 		<div class="card block-body">
@@ -79,8 +83,10 @@
 				<li><strong>Nginx (공유)</strong><span>도메인 이름으로 나눠, 한 컨테이너가 두 사이트의 HTTPS를 처리</span></li>
 				<li><strong>minunglee.cloud</strong><span>Spring Boot 앱으로 전달 (포트폴리오·게이트웨이)</span></li>
 				<li><strong>jipdon.com</strong><span>미리 빌드한 정적 파일을 바로 응답. 서버 프로그램이 없어 메모리를 거의 쓰지 않음</span></li>
+				<li><strong>jipdon.com/api</strong><span>실거래가 서버(Spring Boot)로 전달. IP당 초당 5회 제한</span></li>
+				<li><strong>수집 배치</strong><span>6시간마다 국토부 API → PostgreSQL. 분석 결과는 Redis 캐시</span></li>
 			</ol>
-			<p class="hint">두 저장소가 각자 자기 Nginx 설정 파일만 배포하고, 공통 설정(TLS·HTTP 기본 서버)은 게이트웨이 저장소가 관리합니다.</p>
+			<p class="hint">세 저장소가 각자 독립적으로 배포합니다. PostgreSQL·Redis는 게이트웨이와 함께 쓰되 DB·계정·Redis 번호를 나눴고, 실거래가 서버는 힙 256MB·컨테이너 448MB로 제한합니다. Nginx는 API 주소를 요청 때마다 찾게 해 API가 꺼져 있어도 다른 사이트는 정상 동작합니다.</p>
 		</div>
 	</section>
 
@@ -116,6 +122,38 @@
 		</div>
 	</section>
 
+	<!-- 2단계 핵심 설계 -->
+	<section class="page-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">KEY DESIGN · SERVER</span>
+				<span class="fold-name">실거래가 서버 설계 4가지</span>
+			</span>
+		</div>
+		<div class="design-grid">
+			<article class="card design">
+				<h3>멱등 수집</h3>
+				<p class="problem"><span class="label">문제</span><span>실거래가 자료에는 거래 고유 번호가 없고, 같은 달을 여러 번 다시 받아야 함 (늦은 신고·계약 해제)</span></p>
+				<p>거래 내용의 해시를 고유 키로 두고 <code>INSERT … ON CONFLICT</code>로 일괄 저장. <strong>같은 달을 다시 받아도 줄이 늘지 않고</strong>, 계약 해제로 바뀐 매매는 해제 여부만 갱신</p>
+			</article>
+			<article class="card design">
+				<h3>이어서 수집, 한도 안에서</h3>
+				<p class="problem"><span class="label">문제</span><span>83개 시군구 × 4종 × 24개월 ≈ 8천 번 호출. 공공 API는 하루 한도와 일시 오류가 있음</span></p>
+				<p>지역·종류·월 단위 수집 기록으로 할 일을 정하고, 최근 달부터 채움. 한 번에 3,000회까지, 한도 초과 응답이면 멈췄다가 다음 실행에서 이어 감. 일시 오류는 3번까지 재시도</p>
+			</article>
+			<article class="card design">
+				<h3>흔들리지 않는 전세가율</h3>
+				<p class="problem"><span class="label">문제</span><span>급매·특이 거래 한두 건, 면적 표기 차이로 결과가 왜곡됨</span></p>
+				<p>평균 대신 <strong>중앙값</strong>, 전용면적은 소수점 버림으로 같은 타입끼리 비교. 최근 12개월에 거래가 없으면 24개월로 넓히고 <strong>쓴 기간·건수·근거 거래를 함께</strong> 보여줌</p>
+			</article>
+			<article class="card design">
+				<h3>캐시 버전으로 일괄 무효화</h3>
+				<p class="problem"><span class="label">문제</span><span>새 거래가 들어오면 수만 건의 분석 캐시가 한꺼번에 낡음</span></p>
+				<p>캐시 키에 버전 번호를 넣고 수집 후 버전만 올림 — 키를 찾아 지우지 않음. 계산 방식 버전도 키에 넣어 배포 직후 예전 결과를 쓰지 않음. Redis 장애 시 캐시 없이 계산</p>
+			</article>
+		</div>
+	</section>
+
 	<!-- 숫자 -->
 	<section class="page-section">
 		<div class="block-title">
@@ -125,8 +163,10 @@
 			</span>
 		</div>
 		<div class="metric-grid">
-			<div class="card metric"><strong>7<small>종</small></strong><span>운영 중인 계산기</span></div>
-			<div class="card metric"><strong>57<small>개</small></strong><span>계산 로직 테스트 (머지 전 CI 필수 통과)</span></div>
+			<div class="card metric"><strong>83<small>개</small></strong><span>수집 중인 수도권 시군구 (아파트·빌라 매매·전월세 4종)</span></div>
+			<div class="card metric"><strong>110<small>만 건</small></strong><span>배포 후 30분 안에 쌓인 실거래 (13개월분, 24개월까지 이어서 수집)</span></div>
+			<div class="card metric"><strong>40<small>ms</small></strong><span>건물 분석 조회 응답 (캐시, 운영 서버 측정)</span></div>
+			<div class="card metric"><strong>81<small>개</small></strong><span>자동 테스트 (계산기 57 + 서버 24, 머지 전 CI 필수 통과)</span></div>
 			<div class="card metric"><strong>0<small>원</small></strong><span>추가 서버 비용 (게이트웨이 서버 공유)</span></div>
 			<div class="card metric"><strong>5<small>개</small></strong><span>즉시 되돌릴 수 있는 이전 버전</span></div>
 		</div>
@@ -141,6 +181,21 @@
 			</span>
 		</div>
 		<div class="card block-body">
+			<div class="item">
+				<p class="item-title">2026년 행정구역 개편으로 지역 코드가 바뀜</p>
+				<p class="problem"><span class="label">원인</span><span>인천(중구·동구·서구)과 화성시가 새 구로 나뉘며 예전 코드로는 과거 거래까지 0건이 나옴</span></p>
+				<p class="resolution"><span class="label">해결</span><span>후보 코드 범위를 실제 API에 조회해 거래가 나오는 코드 8개를 찾고, 응답의 동 이름으로 어느 구인지 확인. 83개 지역 모두 실데이터로 검증</span></p>
+			</div>
+			<div class="item">
+				<p class="item-title">"등록되지 않은 서비스키" 오류</p>
+				<p class="problem"><span class="label">원인</span><span>포털이 보여주는 키 중 이미 URL 인코딩된 키를 넣으면 호출할 때 한 번 더 인코딩됨</span></p>
+				<p class="resolution"><span class="label">해결</span><span>키에 %가 있으면 먼저 디코딩해 원래 값으로 맞춘 뒤 한 번만 인코딩. 어느 키를 넣어도 동작하게 하고 테스트로 고정</span></p>
+			</div>
+			<div class="item">
+				<p class="item-title">같은 타입이 두 면적으로 갈라짐 (운영 데이터에서 발견)</p>
+				<p class="problem"><span class="label">원인</span><span>59.39㎡·59.97㎡처럼 신고된 같은 59㎡형이 반올림으로 59와 60으로 나뉘어 매매·전세 비교가 안 됨</span></p>
+				<p class="resolution"><span class="label">해결</span><span>소수점 버림("84㎡형" 표기와 같음)으로 변경하고, 캐시 키에 계산 방식 버전을 넣어 배포 즉시 반영</span></p>
+			</div>
 			<div class="item">
 				<p class="item-title">두 저장소가 하나의 Nginx 설정을 덮어씀</p>
 				<p class="problem"><span class="label">원인</span><span>게이트웨이 배포가 설정 파일 전체를 올리는 구조라, 다른 사이트를 추가하면 다음 배포 때 지워짐</span></p>
@@ -178,7 +233,7 @@
 				<li><strong>광고 준비</strong>: 소개·개인정보처리방침(광고 쿠키 고지)·이용약관·문의 페이지</li>
 				<li><strong>개인정보</strong>: 입력값을 서버로 보내지 않고 회원가입이 없어 개인정보를 저장하지 않음</li>
 			</ul>
-			<p class="hint">다음 단계로 국토부 실거래가를 모으는 Spring 서버를 붙여 전세가율·깡통전세 위험을 보여줄 계획입니다.</p>
+			<p class="hint">공공임대(장기전세) 단지처럼 실거래 자료만으로는 걸러낼 수 없는 경우는 화면에 한계로 밝혀 둡니다.</p>
 		</div>
 	</section>
 
