@@ -26,4 +26,10 @@ class PortalController {
 		return "portal";
 	}
 
+	/** 집돈 계산기(jipdon.com) 프로젝트 소개. 실제 서비스는 별도 도메인의 정적 사이트다 */
+	@GetMapping("/jipdon")
+	String jipdon() {
+		return "jipdon";
+	}
+
 }

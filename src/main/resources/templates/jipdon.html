@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>집돈 계산기 | 이민웅</title>
+	<meta name="description" content="대출·전세·중개보수·DSR·투자 계산을 계산식과 법령 근거까지 보여주는 계산기 사이트. jipdon.com에서 운영 중">
+	<link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+<main class="container page project-page">
+	<a class="back" th:href="@{/}">← 포트폴리오</a>
+
+	<!-- 한 줄 소개 -->
+	<header class="project-hero">
+		<span class="fold-label">PROJECT 02 · JIPDON</span>
+		<h1>집돈 계산기</h1>
+		<p class="lead">집·대출·차처럼 큰돈이 드는 계산을, 결과뿐 아니라 <strong>계산식과 법령 근거</strong>까지 보여주는 계산기 사이트. 실제 도메인에서 운영 중입니다.</p>
+		<ul class="chips small">
+			<li>Astro</li><li>TypeScript</li><li>Vitest</li><li>Nginx</li><li>GitHub Actions</li><li>SEO · 구조화 데이터</li>
+		</ul>
+		<div class="hero-actions">
+			<a class="button" href="https://jipdon.com" target="_blank" rel="noopener">집돈 계산기 사용해보기 ↗</a>
+			<a class="link-button" href="https://github.com/minunglee/jipdon" target="_blank" rel="noopener">GitHub</a>
+		</div>
+	</header>
+
+	<!-- 왜 만들었나 -->
+	<section class="page-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">PROBLEM</span>
+				<span class="fold-name">왜 만들었나</span>
+			</span>
+		</div>
+		<div class="card block-body">
+			<p class="project-text">대출 상환액이나 중개보수는 한 번 잘못 계산하면 수십만~수백만 원이 달라집니다. 그런데 많은 계산기가 <strong>결과 숫자만</strong> 보여줍니다.</p>
+			<ul class="points">
+				<li><strong>근거가 없다</strong>: 어떤 공식, 어떤 반올림, 어떤 법령 기준인지 알 수 없어 은행·중개사무소 금액과 다르면 무엇이 맞는지 확인할 수 없다</li>
+				<li><strong>기준이 바뀐다</strong>: 중개보수 요율은 2021년에 개정됐고, 전월세 전환율 상한은 기준금리를 따라 움직인다</li>
+				<li><strong>서버를 더 늘리고 싶지 않다</strong>: 이미 게이트웨이가 돌고 있는 2GB 서버 한 대로 함께 운영해야 한다</li>
+			</ul>
+			<p class="project-text">공인중개사 자격을 가진 개발자로서, 계산식과 근거를 공개하고 계산 로직을 테스트로 검증하는 계산기를 만들었습니다.</p>
+		</div>
+	</section>
+
+	<!-- 무엇을 계산하나 -->
+	<section class="page-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">FEATURES</span>
+				<span class="fold-name">계산기 7종</span>
+			</span>
+		</div>
+		<div class="card block-body">
+			<ul class="points">
+				<li><a href="https://jipdon.com/loan/" target="_blank" rel="noopener"><strong>대출 상환</strong></a>: 원리금균등·원금균등·만기일시 비교, 월별 상환표</li>
+				<li><a href="https://jipdon.com/jeonse-loan/" target="_blank" rel="noopener"><strong>전세대출 이자</strong></a>: 월 이자, 보증료 포함 총비용</li>
+				<li><a href="https://jipdon.com/brokerage-fee/" target="_blank" rel="noopener"><strong>중개보수(복비)</strong></a>: 공인중개사법 시행규칙 상한 요율·한도, 월세 거래금액 환산(×100 / ×70)</li>
+				<li><a href="https://jipdon.com/rent-conversion/" target="_blank" rel="noopener"><strong>전월세 전환</strong></a>: 주택임대차보호법 상한(기준금리 + 2%) 대비 실제 전환율 확인</li>
+				<li><a href="https://jipdon.com/car-installment/" target="_blank" rel="noopener"><strong>자동차 할부</strong></a>: 월 납입금, 할부 기간별 총 이자 비교</li>
+				<li><a href="https://jipdon.com/invest/" target="_blank" rel="noopener"><strong>적립식·거치식 투자</strong></a>: S&amp;P 500·나스닥 100 최근 10년 실제 수익률 재현, 목표 금액 역산</li>
+				<li><a href="https://jipdon.com/dsr/" target="_blank" rel="noopener"><strong>DSR</strong></a>: 소득 대비 원리금 비율, 스트레스 금리 반영 최대 대출액</li>
+			</ul>
+		</div>
+	</section>
+
+	<!-- 구조 -->
+	<section class="page-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">ARCHITECTURE</span>
+				<span class="fold-name">서버 한 대에 서비스 두 개</span>
+			</span>
+		</div>
+		<div class="card block-body">
+			<ol class="flow">
+				<li><strong>브라우저</strong><span>모든 계산은 브라우저에서 실행. 입력한 금액은 서버로 보내지 않음</span></li>
+				<li><strong>Nginx (공유)</strong><span>도메인 이름으로 나눠, 한 컨테이너가 두 사이트의 HTTPS를 처리</span></li>
+				<li><strong>minunglee.cloud</strong><span>Spring Boot 앱으로 전달 (포트폴리오·게이트웨이)</span></li>
+				<li><strong>jipdon.com</strong><span>미리 빌드한 정적 파일을 바로 응답. 서버 프로그램이 없어 메모리를 거의 쓰지 않음</span></li>
+			</ol>
+			<p class="hint">두 저장소가 각자 자기 Nginx 설정 파일만 배포하고, 공통 설정(TLS·HTTP 기본 서버)은 게이트웨이 저장소가 관리합니다.</p>
+		</div>
+	</section>
+
+	<!-- 핵심 설계 -->
+	<section class="page-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">KEY DESIGN</span>
+				<span class="fold-name">핵심 설계 4가지</span>
+			</span>
+		</div>
+		<div class="design-grid">
+			<article class="card design">
+				<h3>계산 로직 분리와 독립 검증</h3>
+				<p class="problem"><span class="label">문제</span><span>계산기는 한 번 틀리면 신뢰를 잃음. 화면 코드에 섞인 계산은 검증하기 어려움</span></p>
+				<p>계산을 화면과 분리한 순수 함수로 두고, 기대값은 손계산·고정밀 계산 등 <strong>코드와 독립된 방법</strong>으로 구해 대조. 반올림 자투리는 마지막 달에 정리해 잔액이 정확히 0이 되도록 함</p>
+			</article>
+			<article class="card design">
+				<h3>추가 서버 비용 0원</h3>
+				<p class="problem"><span class="label">문제</span><span>사이트를 하나 늘릴 때마다 서버를 늘리면 비용이 계속 커짐</span></p>
+				<p>정적 사이트로 빌드해 기존 2GB 서버의 Nginx가 함께 서비스. 사이트별 설정 파일로 나눠 <strong>한 프로젝트의 배포가 다른 프로젝트 설정을 덮어쓰지 않게</strong> 함</p>
+			</article>
+			<article class="card design">
+				<h3>링크 교체 방식 무중단 배포</h3>
+				<p class="problem"><span class="label">문제</span><span>파일을 덮어쓰는 도중에 접속하면 반쯤 바뀐 사이트가 보이고, 되돌리기도 어려움</span></p>
+				<p>새 버전을 커밋별 폴더에 올린 뒤 <code>current</code> 링크만 한 번에 바꿔 끼움. 최근 5개 버전을 남겨 <strong>링크만 바꾸면 즉시 롤백</strong></p>
+			</article>
+			<article class="card design">
+				<h3>바뀌는 기준값은 한 곳에서</h3>
+				<p class="problem"><span class="label">문제</span><span>기준금리·지수 수익률이 페이지 곳곳에 흩어지면 갱신을 빠뜨림</span></p>
+				<p>기준금리와 과거 수익률을 각각 데이터 파일 하나에 두고 <strong>확인 날짜·출처와 함께</strong> 화면에 표시. 숫자 한 줄만 고치면 모든 페이지에 반영</p>
+			</article>
+		</div>
+	</section>
+
+	<!-- 숫자 -->
+	<section class="page-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">NUMBERS</span>
+				<span class="fold-name">운영 현황</span>
+			</span>
+		</div>
+		<div class="metric-grid">
+			<div class="card metric"><strong>7<small>종</small></strong><span>운영 중인 계산기</span></div>
+			<div class="card metric"><strong>57<small>개</small></strong><span>계산 로직 테스트 (머지 전 CI 필수 통과)</span></div>
+			<div class="card metric"><strong>0<small>원</small></strong><span>추가 서버 비용 (게이트웨이 서버 공유)</span></div>
+			<div class="card metric"><strong>5<small>개</small></strong><span>즉시 되돌릴 수 있는 이전 버전</span></div>
+		</div>
+	</section>
+
+	<!-- 트러블슈팅 -->
+	<section class="page-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">TROUBLESHOOTING</span>
+				<span class="fold-name">만들며 겪은 문제</span>
+			</span>
+		</div>
+		<div class="card block-body">
+			<div class="item">
+				<p class="item-title">두 저장소가 하나의 Nginx 설정을 덮어씀</p>
+				<p class="problem"><span class="label">원인</span><span>게이트웨이 배포가 설정 파일 전체를 올리는 구조라, 다른 사이트를 추가하면 다음 배포 때 지워짐</span></p>
+				<p class="resolution"><span class="label">해결</span><span>공통·게이트웨이·집돈 설정을 파일로 나누고 폴더째 읽게 변경. 각 저장소는 자기 파일만 올리고 <code>nginx -t</code> 검사 후 다시 읽기</span></p>
+			</div>
+			<div class="item">
+				<p class="item-title">컨테이너 안에서 배포 링크를 찾지 못할 수 있음</p>
+				<p class="problem"><span class="label">원인</span><span>서버 경로(/home/deploy/sites)와 Nginx 컨테이너 안 경로(/var/www/sites)가 달라, 절대 경로 링크는 컨테이너에서 깨짐</span></p>
+				<p class="resolution"><span class="label">해결</span><span><code>current → releases/&lt;커밋&gt;</code> 상대 경로 링크로 만들어 양쪽에서 같은 곳을 가리키게 함</span></p>
+			</div>
+			<div class="item">
+				<p class="item-title">모바일에서 페이지가 옆으로 94px 넘침</p>
+				<p class="problem"><span class="label">원인</span><span>버튼처럼 꾸미려고 숨긴 라디오 입력이 입력칸 공통 스타일(너비 100%)을 받아 화면 밖까지 늘어남</span></p>
+				<p class="resolution"><span class="label">해결</span><span>숨긴 입력의 크기를 1px로 고정. 이후 모든 페이지를 375px 폭에서 가로 넘침 0인지 확인하는 절차를 추가</span></p>
+			</div>
+			<div class="item">
+				<p class="item-title">테스트가 실패했는데 틀린 건 테스트였음</p>
+				<p class="problem"><span class="label">원인</span><span>자동차 할부 월 납입금 기대값을 어림으로 적어 둠 (724,691원)</span></p>
+				<p class="resolution"><span class="label">해결</span><span>40자리 정밀도로 따로 계산해 724,701.64원 → 코드(724,702원)가 맞음을 확인. 이후 기대값은 항상 독립 계산으로 구함</span></p>
+			</div>
+		</div>
+	</section>
+
+	<!-- 검색·수익화 -->
+	<section class="page-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">OPERATION</span>
+				<span class="fold-name">서비스로 운영하기</span>
+			</span>
+		</div>
+		<div class="card block-body">
+			<ul class="points">
+				<li><strong>검색 노출</strong>: 구글 서치콘솔·네이버 서치어드바이저 등록, sitemap(배포 시각 포함), 페이지별 구조화 데이터(JSON-LD), 공유 미리보기 이미지</li>
+				<li><strong>광고 준비</strong>: 소개·개인정보처리방침(광고 쿠키 고지)·이용약관·문의 페이지</li>
+				<li><strong>개인정보</strong>: 입력값을 서버로 보내지 않고 회원가입이 없어 개인정보를 저장하지 않음</li>
+			</ul>
+			<p class="hint">다음 단계로 국토부 실거래가를 모으는 Spring 서버를 붙여 전세가율·깡통전세 위험을 보여줄 계획입니다.</p>
+		</div>
+	</section>
+
+	<div class="hero-actions" style="justify-content: center; margin: 40px 0">
+		<a class="button" href="https://jipdon.com" target="_blank" rel="noopener">집돈 계산기 사용해보기 ↗</a>
+	</div>
+</main>
+<script th:src="@{/scroll-top.js}" defer></script>
+</body>
+</html>
