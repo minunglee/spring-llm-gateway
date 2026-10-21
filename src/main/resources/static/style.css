@@ -1098,6 +1098,10 @@ a.tile:hover {
 	border-color: var(--accent);
 }
 
+.side-project + .side-project {
+	margin-top: 12px;
+}
+
 /* 프로젝트 색은 은은하게 */
 .resume .project {
 	border-left-width: 4px;

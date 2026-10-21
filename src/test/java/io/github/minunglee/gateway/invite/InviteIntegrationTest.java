@@ -134,7 +134,10 @@ class InviteIntegrationTest {
 			.andExpect(content().string(not(containsString("F사"))))
 			.andExpect(content().string(containsString("홍길동")))
 			.andExpect(content().string(containsString("테스트 문제 상황")))
-			.andExpect(content().string(containsString("테스트 자기소개 문단")));
+			.andExpect(content().string(containsString("테스트 자기소개 문단")))
+			// 개인 프로젝트 두 개가 소개 페이지로 연결된다
+			.andExpect(content().string(containsString("href=\"/gateway\"")))
+			.andExpect(content().string(containsString("href=\"/jipdon\"")));
 		mockMvc.perform(get("/resume/pdf").cookie(invite))
 			.andExpect(status().isOk())
 			.andExpect(header().string("Content-Type", "application/pdf"))

@@ -116,8 +116,17 @@
 			</div>
 			<a class="card block-body side-project" th:href="@{/gateway}">
 				<span class="tile-body">
-					<span class="tile-title">AI 비용 방어 게이트웨이</span>
+					<span class="tile-title">AI 비용 방어 게이트웨이 (minunglee.cloud)</span>
 					<span class="tile-desc">공개 AI 데모의 비용·봇·장애를 막는 Spring Boot 서버 · 지금 보고 계신 이 사이트를 운영하는 서버</span>
+					<span class="tile-desc">Redis Lua 원자적 사용량 제한·예산 선차감으로 동시 1,000건에도 예산 초과 0건 · 가상 스레드로 처리량 2.1배</span>
+				</span>
+				<span class="tile-arrow" aria-hidden="true">→</span>
+			</a>
+			<a class="card block-body side-project" th:href="@{/jipdon}">
+				<span class="tile-body">
+					<span class="tile-title">집돈 계산기 · 전세 위험 확인 (jipdon.com)</span>
+					<span class="tile-desc">국토부 실거래가를 전국 256개 시군구에서 수집해 건물별 전세가율을 계산하는 Spring Boot 서버 + 계산기 사이트</span>
+					<span class="tile-desc">멱등 수집 배치(실거래 366만 건, 실패 0건) · 요약 표와 캐시 버전으로 조회 p95 11ms · 서버 1대에 서비스 3개</span>
 				</span>
 				<span class="tile-arrow" aria-hidden="true">→</span>
 			</a>
