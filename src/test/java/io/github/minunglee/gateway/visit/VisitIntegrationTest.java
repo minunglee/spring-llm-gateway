@@ -75,6 +75,10 @@ class VisitIntegrationTest {
 			.andExpect(content().string(containsString("오늘 방문자 · 조회 1")))
 			// 테스트에는 jipdon-api가 없어 연결되지 않음으로 보인다
 			.andExpect(content().string(containsString("통계 서버에 연결되지 않았습니다")));
+		// 사이트 블록은 두 개만 (조각 정의가 화면에 한 번 더 그려지지 않게)
+		String html = mockMvc.perform(get("/admin/visits").header("Authorization", "Bearer test-admin-token"))
+			.andReturn().getResponse().getContentAsString();
+		assertThat(html.split("통계 서버에 연결되지 않았습니다", -1)).hasSize(2);
 		mockMvc.perform(get("/admin/visits")).andExpect(status().isUnauthorized());
 	}
 

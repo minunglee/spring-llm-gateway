@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- 관리자 방문 통계: 사이트 하나의 블록 (admin-visits.html이 두 번 끼워 넣는다) -->
+<section class="admin-section" th:fragment="site(label, name, v)">
+	<div class="block-title">
+		<span class="fold-head">
+			<span class="fold-label" th:text="${label}">SITE</span>
+			<span class="fold-name" th:text="${name}">사이트</span>
+		</span>
+	</div>
+	<div th:if="${v == null}" class="card block-body muted">통계 서버에 연결되지 않았습니다.</div>
+	<th:block th:if="${v != null}">
+		<div class="metric-grid">
+			<div class="card metric"><strong th:text="${v.today().visitors()}">0</strong><span th:text="|오늘 방문자 · 조회 ${v.today().views()}|">오늘</span></div>
+			<div class="card metric"><strong th:text="${v.last7().visitors()}">0</strong><span th:text="|7일 방문자 · 조회 ${v.last7().views()}|">7일</span></div>
+			<div class="card metric"><strong th:text="${v.last30().visitors()}">0</strong><span th:text="|30일 방문자 · 조회 ${v.last30().views()}|">30일</span></div>
+		</div>
+		<div class="card block-body table-wrap" style="margin-top: 12px">
+			<table class="admin-table">
+				<thead><tr><th>날짜</th><th>방문자</th><th>조회</th><th class="bar-col"></th></tr></thead>
+				<tbody>
+				<tr th:if="${v.daily().isEmpty()}"><td colspan="4" class="muted">아직 기록이 없습니다.</td></tr>
+				<tr th:each="d : ${v.daily()}">
+					<td th:text="${d.date()}">날짜</td>
+					<td class="num" th:text="${d.visitors()}">0</td>
+					<td class="num" th:text="${d.views()}">0</td>
+					<td class="bar-col"><div class="bar"><div class="bar-fill" th:style="|width: ${d.barPercent(v.maxDailyViews())}%|"></div></div></td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="visit-ranks">
+			<div class="card block-body">
+				<h3>많이 본 페이지</h3>
+				<ol class="rank-list"><li th:each="r : ${v.topPages()}"><span th:text="${r.key()}">/</span><b th:text="${r.count()}">0</b></li></ol>
+			</div>
+			<div class="card block-body">
+				<h3>들어온 곳</h3>
+				<ol class="rank-list">
+					<li th:if="${v.topReferrers().isEmpty()}" class="muted">직접 방문만 있습니다.</li>
+					<li th:each="r : ${v.topReferrers()}"><span th:text="${r.key()}">host</span><b th:text="${r.count()}">0</b></li>
+				</ol>
+			</div>
+			<div class="card block-body">
+				<h3>기기</h3>
+				<ol class="rank-list"><li th:each="r : ${v.devices()}"><span th:text="${r.key() == 'mobile'} ? '모바일' : 'PC'">기기</span><b th:text="${r.count()}">0</b></li></ol>
+			</div>
+		</div>
+	</th:block>
+</section>
+</body>
+</html>
