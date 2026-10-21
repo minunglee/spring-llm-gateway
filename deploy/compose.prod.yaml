@@ -20,6 +20,8 @@ services:
       GATEWAY_RESUME_DIR: /app/private
       GATEWAY_TURNSTILE_SITE_KEY: ${GATEWAY_TURNSTILE_SITE_KEY:-}
       GATEWAY_TURNSTILE_SECRET_KEY: ${GATEWAY_TURNSTILE_SECRET_KEY:-}
+      # jipdon.com 방문 통계를 읽는 내부 토큰 (jipdon-api와 같은 값)
+      JIPDON_INTERNAL_TOKEN: ${JIPDON_INTERNAL_TOKEN:-}
     volumes:
       # 이력서 원본은 서버에만 있다 (Git에 없음)
       - ./private:/app/private:ro

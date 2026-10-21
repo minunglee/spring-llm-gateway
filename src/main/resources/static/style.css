@@ -1094,6 +1094,44 @@ a.tile:hover {
 	text-decoration: none;
 }
 
+/* 관리자 방문 통계 */
+.visit-ranks {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.visit-ranks h3 {
+	margin: 0 0 8px;
+	font-size: 0.95rem;
+}
+
+.rank-list {
+	margin: 0;
+	padding-left: 1.2em;
+	font-size: 0.9rem;
+}
+
+.rank-list li {
+	padding: 2px 0;
+}
+
+.rank-list li span {
+	word-break: break-all;
+}
+
+.rank-list li b {
+	float: right;
+	font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+	.visit-ranks {
+		grid-template-columns: 1fr;
+	}
+}
+
 .side-project:hover {
 	border-color: var(--accent);
 }
@@ -1251,6 +1289,7 @@ a.tile:hover {
 }
 
 .created {
+	white-space: pre-line;
 	margin: 8px 0 0;
 	padding: 12px;
 	background: var(--bg);

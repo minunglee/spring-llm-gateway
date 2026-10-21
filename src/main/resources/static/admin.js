@@ -27,7 +27,10 @@ document.getElementById('invite-create')?.addEventListener('submit', async (even
 	const validDays = Number(document.getElementById('invite-days').value || 30);
 	const created = await send('POST', '/admin/invites', { label, validDays, dailyLimit: 100 });
 	const output = document.getElementById('invite-created');
-	output.textContent = `${created.label} 코드: ${created.code} (이 화면을 벗어나면 다시 볼 수 없습니다)`;
+	// 취업 사이트의 포트폴리오 URL 칸에 넣을 초대 링크 (열면 코드가 자동 적용됨)
+	output.textContent = `${created.label} 코드: ${created.code}
+초대 링크: ${location.origin}/i/${created.code}
+(이 화면을 벗어나면 다시 볼 수 없습니다)`;
 	output.hidden = false;
 });
 

@@ -26,7 +26,7 @@ import org.springframework.util.StringUtils;
  * 관리자 토큰으로 로그인하면 12시간짜리 쿠키를 발급한다. SameSite=Strict라 다른 사이트에서 보낸 요청에는
  * 쿠키가 실리지 않아, 대시보드의 변경 요청(긴급 차단, 코드 발급·폐기)을 외부에서 위조할 수 없다.
  */
-class AdminSession {
+public class AdminSession {
 
 	static final String COOKIE = "admin";
 
@@ -66,7 +66,7 @@ class AdminSession {
 		return base("", secure).maxAge(0).build();
 	}
 
-	boolean isLoggedIn(HttpServletRequest request) {
+	public boolean isLoggedIn(HttpServletRequest request) {
 		if (!enabled() || request.getCookies() == null) {
 			return false;
 		}

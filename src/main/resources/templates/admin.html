@@ -47,6 +47,39 @@
 		</div>
 	</section>
 
+	<!-- 방문 통계 요약 -->
+	<section class="admin-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">VISITORS</span>
+				<span class="fold-name">방문자</span>
+			</span>
+			<a class="fold-meta" th:href="@{/admin/visits}">자세히 →</a>
+		</div>
+		<div class="card block-body table-wrap">
+			<table class="admin-table">
+				<thead><tr><th>사이트</th><th>오늘</th><th>7일</th><th>30일</th></tr></thead>
+				<tbody>
+				<tr th:with="v=${cloudVisits}">
+					<td>minunglee.cloud</td>
+					<td class="num" th:text="|${v.today().visitors()}명 · ${v.today().views()}회|">0</td>
+					<td class="num" th:text="|${v.last7().visitors()}명 · ${v.last7().views()}회|">0</td>
+					<td class="num" th:text="|${v.last30().visitors()}명 · ${v.last30().views()}회|">0</td>
+				</tr>
+				<tr th:with="v=${jipdonVisits}">
+					<td>jipdon.com</td>
+					<th:block th:if="${v != null}">
+						<td class="num" th:text="|${v.today().visitors()}명 · ${v.today().views()}회|">0</td>
+						<td class="num" th:text="|${v.last7().visitors()}명 · ${v.last7().views()}회|">0</td>
+						<td class="num" th:text="|${v.last30().visitors()}명 · ${v.last30().views()}회|">0</td>
+					</th:block>
+					<td th:if="${v == null}" colspan="3" class="muted">통계 서버에 연결되지 않음</td>
+				</tr>
+				</tbody>
+			</table>
+		</div>
+	</section>
+
 	<!-- 최근 7일 -->
 	<section class="admin-section">
 		<div class="block-title">

@@ -175,6 +175,35 @@ class InviteIntegrationTest {
 		mockMvc.perform(delete("/invite")).andExpect(status().isNoContent()).andExpect(cookie().maxAge("invite", 0));
 	}
 
+	@Test
+	void 초대_링크로_들어오면_코드가_적용되고_메인으로_간다() throws Exception {
+		String code = createInvite("H사", 100);
+
+		MvcResult result = mockMvc.perform(get("/i/" + code).with(r -> {
+			r.setRemoteAddr("10.1.0.20");
+			return r;
+		}))
+			.andExpect(status().isSeeOther())
+			.andExpect(header().string("Location", "/"))
+			.andExpect(header().string("Referrer-Policy", "no-referrer"))
+			.andReturn();
+		Cookie invite = result.getResponse().getCookie("invite");
+		assertThat(invite).isNotNull();
+		mockMvc.perform(get("/resume").cookie(invite))
+			.andExpect(status().isOk())
+			.andExpect(content().string(containsString("초대코드로 열람 중")));
+	}
+
+	@Test
+	void 틀린_초대_링크는_메인에서_안내만_한다() throws Exception {
+		mockMvc.perform(get("/i/WRONG-CODE"))
+			.andExpect(status().isSeeOther())
+			.andExpect(header().string("Location", "/?invite=invalid"))
+			.andExpect(cookie().doesNotExist("invite"));
+		mockMvc.perform(get("/").param("invite", "invalid"))
+			.andExpect(content().string(containsString("초대 링크의 코드가 만료됐거나")));
+	}
+
 	private String createInvite(String label, int dailyLimit) throws Exception {
 		MvcResult result = mockMvc
 			.perform(post("/admin/invites").header("Authorization", ADMIN)
