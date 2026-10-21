@@ -17,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -61,6 +63,33 @@ class InviteController {
 				.body(new RedeemResponse(code.getExpiresAt())))
 			.orElseGet(() -> ResponseEntity.badRequest()
 				.body(ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "유효하지 않거나 만료된 초대코드입니다.")));
+	}
+
+	/**
+	 * 초대 링크 (https://minunglee.cloud/i/코드). 취업 사이트의 포트폴리오 URL 칸 하나로 초대코드까지 전달하려고 둔다.
+	 * 열면 코드를 적용하고 포트폴리오 메인으로 보낸다. 코드가 틀리거나 만료됐으면 메인에서 안내만 보인다.
+	 */
+	@GetMapping("/i/{code}")
+	ResponseEntity<Void> redeemLink(@PathVariable String code, HttpServletRequest servletRequest) {
+		RateLimitResult limit = rateLimiter.tryAcquire("redeem:" + clientKeyResolver.resolve(servletRequest),
+				REDEEM_HOURLY, REDEEM_DAILY);
+		if (!limit.allowed() || code.length() > 40) {
+			return redirect("/?invite=invalid", null);
+		}
+		return inviteService.redeem(code)
+			.map(found -> redirect("/", inviteCookie.issue(found, servletRequest.isSecure()).toString()))
+			.orElseGet(() -> redirect("/?invite=invalid", null));
+	}
+
+	private static ResponseEntity<Void> redirect(String location, String cookie) {
+		ResponseEntity.BodyBuilder builder = ResponseEntity.status(HttpStatus.SEE_OTHER)
+			.header(HttpHeaders.LOCATION, location)
+			// 초대 링크 주소가 다른 사이트로 넘어가지 않게
+			.header("Referrer-Policy", "no-referrer");
+		if (cookie != null) {
+			builder.header(HttpHeaders.SET_COOKIE, cookie);
+		}
+		return builder.build();
 	}
 
 	@DeleteMapping("/invite")

@@ -54,6 +54,10 @@ gateway:
       hourly: 30
       daily: 100
       daily-budget-usd: 0.50
+  visit:
+    # jipdon.com 방문 통계를 같은 서버의 jipdon-api에서 읽는다 (Docker 네트워크 안, 공유 토큰)
+    jipdon-stats-url: http://jipdon-api:8090/internal/stats
+    jipdon-token: ${JIPDON_INTERNAL_TOKEN:}
   invite:
     # 초대코드 쿠키 서명용 비밀값
     cookie-secret: ${GATEWAY_COOKIE_SECRET:local-dev-cookie-secret}

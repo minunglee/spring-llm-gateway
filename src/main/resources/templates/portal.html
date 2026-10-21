@@ -60,6 +60,7 @@
 				<span class="fold-name">초대코드</span>
 			</span>
 		</div>
+		<p th:if="${inviteInvalid}" class="error" role="alert">초대 링크의 코드가 만료됐거나 올바르지 않습니다. 받으신 코드를 아래에 직접 입력해 주세요.</p>
 		<section th:replace="~{fragments :: invite(${requester})}"></section>
 	</section>
 

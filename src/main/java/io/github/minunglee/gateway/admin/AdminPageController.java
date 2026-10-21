@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import io.github.minunglee.gateway.limit.ClientKeyResolver;
 import io.github.minunglee.gateway.limit.RateLimiter;
+import io.github.minunglee.gateway.visit.JipdonStatsClient;
+import io.github.minunglee.gateway.visit.VisitService;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -35,8 +37,14 @@ class AdminPageController {
 
 	private final ClientKeyResolver clientKeyResolver;
 
+	private final VisitService visitService;
+
+	private final JipdonStatsClient jipdonStats;
+
 	AdminPageController(AdminSession session, AdminDashboardService dashboardService, RateLimiter rateLimiter,
-			ClientKeyResolver clientKeyResolver) {
+			ClientKeyResolver clientKeyResolver, VisitService visitService, JipdonStatsClient jipdonStats) {
+		this.visitService = visitService;
+		this.jipdonStats = jipdonStats;
 		this.session = session;
 		this.dashboardService = dashboardService;
 		this.rateLimiter = rateLimiter;
@@ -52,7 +60,19 @@ class AdminPageController {
 		}
 		model.addAttribute("dashboard",
 				dashboardService.dashboard(AdminDashboardService.UsageRange.of(range)));
+		model.addAttribute("cloudVisits", visitService.stats(30));
+		model.addAttribute("jipdonVisits", jipdonStats.fetch(30).orElse(null));
 		return "admin";
+	}
+
+	/** 두 사이트(minunglee.cloud, jipdon.com)의 방문 통계 상세 */
+	@GetMapping("/admin/visits")
+	String visits(@RequestParam(defaultValue = "30") int days, Model model) {
+		int range = Math.clamp(days, 1, 90);
+		model.addAttribute("days", range);
+		model.addAttribute("cloudVisits", visitService.stats(range));
+		model.addAttribute("jipdonVisits", jipdonStats.fetch(range).orElse(null));
+		return "admin-visits";
 	}
 
 	/** 회사(초대코드)별 상세 */
