@@ -57,7 +57,7 @@
 		</div>
 		<div class="card block-body">
 			<ul class="points">
-				<li><a href="https://jipdon.com/jeonse-risk/" target="_blank" rel="noopener"><strong>전세 위험 확인</strong></a>: 수도권 아파트·빌라를 검색하면 면적별 최근 매매·전세 중앙값, 전세가율과 위험 구간, 근거 거래를 보여주고, 내 보증금 기준 전세가율도 계산 <em>(2단계 · Spring 서버)</em></li>
+				<li><a href="https://jipdon.com/jeonse-risk/" target="_blank" rel="noopener"><strong>전세 위험 확인</strong></a>: 수도권 아파트·빌라·오피스텔을 검색하면 면적별 최근 매매·전세 중앙값, 전세가율과 위험 구간, 근거 거래를 보여주고, 내 보증금 기준 전세가율도 계산 <em>(2단계 · Spring 서버)</em> 단독·다가구는 지번이 가려진 자료라 동네 시세(전세 보증금 범위)와 다가구 보증금 안전 계산으로 제공</li>
 				<li><a href="https://jipdon.com/loan/" target="_blank" rel="noopener"><strong>대출 상환</strong></a>: 원리금균등·원금균등·만기일시 비교, 월별 상환표</li>
 				<li><a href="https://jipdon.com/jeonse-loan/" target="_blank" rel="noopener"><strong>전세대출 이자</strong></a>: 월 이자, 보증료 포함 총비용</li>
 				<li><a href="https://jipdon.com/brokerage-fee/" target="_blank" rel="noopener"><strong>중개보수(복비)</strong></a>: 공인중개사법 시행규칙 상한 요율·한도, 월세 거래금액 환산(×100 / ×70)</li>
@@ -138,7 +138,7 @@
 			</article>
 			<article class="card design">
 				<h3>이어서 수집, 한도 안에서</h3>
-				<p class="problem"><span class="label">문제</span><span>83개 시군구 × 4종 × 24개월 ≈ 8천 번 호출. 공공 API는 하루 한도와 일시 오류가 있음</span></p>
+				<p class="problem"><span class="label">문제</span><span>83개 시군구 × 8종 × 24개월 ≈ 1만 6천 번 호출. 공공 API는 하루 한도와 일시 오류가 있음</span></p>
 				<p>지역·종류·월 단위 수집 기록으로 할 일을 정하고, 최근 달부터 채움. 한 번에 3,000회까지, 한도 초과 응답이면 멈췄다가 다음 실행에서 이어 감. 일시 오류는 3번까지 재시도</p>
 			</article>
 			<article class="card design">
@@ -163,7 +163,7 @@
 			</span>
 		</div>
 		<div class="metric-grid">
-			<div class="card metric"><strong>83<small>개</small></strong><span>수집 중인 수도권 시군구 (아파트·빌라 매매·전월세 4종)</span></div>
+			<div class="card metric"><strong>83<small>개</small></strong><span>수집 중인 수도권 시군구 (아파트·빌라·오피스텔·단독다가구 매매·전월세 8종)</span></div>
 			<div class="card metric"><strong>221<small>만 건</small></strong><span>수집한 실거래 (24개월, 7,968회 수집 작업 실패 0건, 6시간마다 갱신)</span></div>
 			<div class="card metric"><strong>40<small>ms</small></strong><span>건물 분석 조회 응답 (캐시, 운영 서버 측정)</span></div>
 			<div class="card metric"><strong>81<small>개</small></strong><span>자동 테스트 (계산기 57 + 서버 24, 머지 전 CI 필수 통과)</span></div>
@@ -185,6 +185,11 @@
 				<p class="item-title">2026년 행정구역 개편으로 지역 코드가 바뀜</p>
 				<p class="problem"><span class="label">원인</span><span>인천(중구·동구·서구)과 화성시가 새 구로 나뉘며 예전 코드로는 과거 거래까지 0건이 나옴</span></p>
 				<p class="resolution"><span class="label">해결</span><span>후보 코드 범위를 실제 API에 조회해 거래가 나오는 코드 8개를 찾고, 응답의 동 이름으로 어느 구인지 확인. 83개 지역 모두 실데이터로 검증</span></p>
+			</div>
+			<div class="item">
+				<p class="item-title">단독·다가구는 건물을 특정할 수 없음</p>
+				<p class="problem"><span class="label">원인</span><span>실제 응답을 보니 매매는 지번이 가려지고(<code>1*</code>) 전월세는 지번이 아예 없음. 다가구는 매매(건물 전체)와 전세(방 하나)의 단위도 달라 전세가율이 성립하지 않음</span></p>
+				<p class="resolution"><span class="label">해결</span><span>건물 테이블과 분리해 동 단위로 저장하고, 동별 전세 보증금 사분위·매매가를 SQL <code>percentile_cont</code>로 계산. 대신 "근저당 + 선순위 보증금 + 내 보증금 ÷ 시세" 계산기와 확인 목록을 제공</span></p>
 			</div>
 			<div class="item">
 				<p class="item-title">"등록되지 않은 서비스키" 오류</p>
