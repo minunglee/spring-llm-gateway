@@ -4,6 +4,8 @@ on:
   push:
     branches: [main]
   pull_request:
+  # GitHub가 머지 이벤트를 놓쳐 배포가 안 돌았을 때 Actions 화면에서 손으로 다시 돌린다
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,7 +23,7 @@ jobs:
       # 통합 테스트는 Testcontainers로 실제 PostgreSQL·Redis를 띄워 실행한다
       - run: ./gradlew build
       - uses: actions/upload-artifact@v4
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         with:
           name: app-jar
           path: build/libs/spring-llm-gateway-*-SNAPSHOT.jar
@@ -30,7 +32,7 @@ jobs:
   # main에 머지되면 이미지를 만들어 서버에 배포한다
   deploy:
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
     concurrency: production
