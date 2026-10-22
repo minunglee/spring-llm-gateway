@@ -13,7 +13,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 /**
- * jipdon.com 방문 통계를 같은 서버의 jipdon-api에서 읽는다.
+ * jipdon.com 방문 통계와 실거래가 수집 현황을 같은 서버의 jipdon-api에서 읽는다.
  * 주소(jipdon-api:8090/internal)는 Docker 네트워크 안에서만 닿고, 공유 토큰을 함께 보낸다.
  * 토큰이 없거나(로컬 개발) 응답이 없으면 관리자 화면에 "연결되지 않음"으로 보인다.
  */
@@ -28,7 +28,7 @@ public class JipdonStatsClient {
 
 	private final String token;
 
-	JipdonStatsClient(@Value("${gateway.visit.jipdon-stats-url:http://jipdon-api:8090/internal/stats}") String url,
+	JipdonStatsClient(@Value("${gateway.visit.jipdon-internal-url:http://jipdon-api:8090/internal}") String url,
 			@Value("${gateway.visit.jipdon-token:}") String token) {
 		SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
 		requestFactory.setConnectTimeout(Duration.ofSeconds(2));
@@ -39,18 +39,23 @@ public class JipdonStatsClient {
 	}
 
 	public Optional<VisitStats> fetch(int days) {
+		return get("/stats?days=" + days, VisitStats.class);
+	}
+
+	public Optional<JipdonCollectStatus> fetchCollect() {
+		return get("/collect", JipdonCollectStatus.class);
+	}
+
+	private <T> Optional<T> get(String path, Class<T> type) {
 		if (token.isBlank()) {
 			return Optional.empty();
 		}
 		try {
-			return Optional.ofNullable(restClient.get()
-				.uri(url + "?days=" + days)
-				.header("X-Internal-Token", token)
-				.retrieve()
-				.body(VisitStats.class));
+			return Optional.ofNullable(
+					restClient.get().uri(url + path).header("X-Internal-Token", token).retrieve().body(type));
 		}
 		catch (RestClientException ex) {
-			log.warn("jipdon 방문 통계를 읽지 못했습니다: {}", ex.getMessage());
+			log.warn("jipdon-api {} 를 읽지 못했습니다: {}", path, ex.getMessage());
 			return Optional.empty();
 		}
 	}
