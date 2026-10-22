@@ -12,7 +12,6 @@ import java.time.ZoneId;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
-import java.util.regex.Pattern;
 
 import io.github.minunglee.gateway.limit.LimitProperties;
 
@@ -29,8 +28,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class VisitService {
 
-	private static final Pattern BOT = Pattern.compile(
-			"bot|crawl|spider|slurp|preview|headless|lighthouse|curl|wget|python|java/|k6", Pattern.CASE_INSENSITIVE);
 
 	/** 이 시간 안에 같은 사람이 같은 페이지를 다시 열면 조회를 새로 세지 않는다 */
 	static final Duration REPEAT_WINDOW = Duration.ofMinutes(30);
@@ -48,11 +45,11 @@ public class VisitService {
 	}
 
 	/** @param clientKey 사용량 제한과 같은 IP 해시 (원래 IP 아님) */
-	public boolean record(String path, String referrer, String clientKey, String userAgent) {
-		String ua = userAgent == null ? "" : userAgent;
-		if (ua.isBlank() || BOT.matcher(ua).find()) {
+	public boolean record(String path, String referrer, String clientKey, String userAgent, String acceptLanguage) {
+		if (BotFilter.isBot(userAgent, acceptLanguage, referrer)) {
 			return false;
 		}
+		String ua = userAgent;
 		LocalDate today = LocalDate.now(clock.withZone(zone));
 		String visitor = visitor(clientKey, ua, today);
 		Boolean repeated = jdbc.queryForObject(
