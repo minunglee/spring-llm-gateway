@@ -1,12 +1,17 @@
 package io.github.minunglee.gateway.admin;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.Optional;
 
 import com.jayway.jsonpath.JsonPath;
 import io.github.minunglee.gateway.TestcontainersConfiguration;
 import io.github.minunglee.gateway.invite.InviteAccessLog;
 import io.github.minunglee.gateway.invite.InviteService;
+import io.github.minunglee.gateway.visit.JipdonCollectStatus;
+import io.github.minunglee.gateway.visit.JipdonStatsClient;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,12 +22,14 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -46,6 +53,9 @@ class AdminDashboardIntegrationTest {
 
 	@Autowired
 	InviteService inviteService;
+
+	@MockitoBean
+	JipdonStatsClient jipdonStats;
 
 	@BeforeEach
 	void setUp() {
@@ -85,11 +95,32 @@ class AdminDashboardIntegrationTest {
 			.andExpect(content().string(containsString("초대코드 현황")))
 			.andExpect(content().string(containsString("H사")))
 			.andExpect(content().string(containsString("사용량")))
-			.andExpect(content().string(containsString("전체 보기")));
+			.andExpect(content().string(containsString("전체 보기")))
+			.andExpect(content().string(containsString("수집 서버에 연결되지 않음")));
 
 		mockMvc.perform(put("/admin/killswitch").cookie(admin)
 			.contentType(MediaType.APPLICATION_JSON)
 			.content("{\"enabled\": false}")).andExpect(jsonPath("$.killSwitch").value(false));
+	}
+
+	@Test
+	void 집돈_수집_현황을_보여준다() throws Exception {
+		Instant last = Instant.parse("2026-10-16T02:00:00Z"); // 11:00 KST
+		given(jipdonStats.fetchCollect()).willReturn(Optional.of(new JipdonCollectStatus(true, true, "0 0 */6 * * *", 8000,
+				last, 49152, 12, 4915, List.of(new JipdonCollectStatus.Run(last.minusSeconds(125), last, 2048, 2100, 37, 1,
+						true, 300)))));
+		Cookie admin = mockMvc.perform(post("/admin/login").param("token", "test-admin-token"))
+			.andReturn()
+			.getResponse()
+			.getCookie(AdminSession.COOKIE);
+
+		mockMvc.perform(get("/admin").cookie(admin))
+			.andExpect(status().isOk())
+			.andExpect(content().string(containsString("실거래가 수집")))
+			.andExpect(content().string(containsString("10/16 11:00")))
+			.andExpect(content().string(containsString("90% (남은 달 4915 / 전체 49152)")))
+			.andExpect(content().string(containsString("2분 5초")))
+			.andExpect(content().string(containsString("하루 한도 도달")));
 	}
 
 	@Test

@@ -1,5 +1,7 @@
 package io.github.minunglee.gateway.admin;
 
+import java.time.Clock;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -41,10 +43,14 @@ class AdminPageController {
 
 	private final JipdonStatsClient jipdonStats;
 
+	private final Clock clock;
+
 	AdminPageController(AdminSession session, AdminDashboardService dashboardService, RateLimiter rateLimiter,
-			ClientKeyResolver clientKeyResolver, VisitService visitService, JipdonStatsClient jipdonStats) {
+			ClientKeyResolver clientKeyResolver, VisitService visitService, JipdonStatsClient jipdonStats,
+			Clock clock) {
 		this.visitService = visitService;
 		this.jipdonStats = jipdonStats;
+		this.clock = clock;
 		this.session = session;
 		this.dashboardService = dashboardService;
 		this.rateLimiter = rateLimiter;
@@ -62,6 +68,10 @@ class AdminPageController {
 				dashboardService.dashboard(AdminDashboardService.UsageRange.of(range)));
 		model.addAttribute("cloudVisits", visitService.stats(30));
 		model.addAttribute("jipdonVisits", jipdonStats.fetch(30).orElse(null));
+		jipdonStats.fetchCollect().ifPresent(collect -> {
+			model.addAttribute("jipdonCollect", collect);
+			model.addAttribute("jipdonCollectHealth", collect.health(clock.instant()));
+		});
 		return "admin";
 	}
 

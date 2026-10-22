@@ -83,6 +83,51 @@
 		</div>
 	</section>
 
+	<!-- 집돈 실거래가 수집 현황 -->
+	<section class="admin-section">
+		<div class="block-title">
+			<span class="fold-head">
+				<span class="fold-label">JIPDON DATA</span>
+				<span class="fold-name">실거래가 수집</span>
+			</span>
+		</div>
+		<div class="card block-body" th:with="c=${jipdonCollect}">
+			<p th:if="${c == null}" class="muted">수집 서버에 연결되지 않음</p>
+			<th:block th:if="${c != null}">
+				<dl class="info-list">
+					<dt>상태</dt>
+					<dd><strong th:text="${jipdonCollectHealth.label()}"
+								th:classappend="${jipdonCollectHealth.name() != 'OK'} ? 'danger'">상태</strong></dd>
+					<dt>마지막 수집</dt>
+					<dd th:text="${c.lastCollectedText()}">-</dd>
+					<dt>채운 정도</dt>
+					<dd>
+						<span th:text="|${c.coveragePercent()}% (남은 달 ${c.missing()} / 전체 ${c.totalTasks()})|">비율</span>
+						<div class="bar"><div class="bar-fill" th:style="|width: ${c.coveragePercent()}%|"></div></div>
+					</dd>
+					<dt>다시 받을 최근 달</dt>
+					<dd th:text="|${c.refreshDue()}건 (다음 실행에서 처리, 한 번에 최대 ${c.maxCallsPerRun()}회 호출)|">0</dd>
+				</dl>
+				<div class="table-wrap" th:if="${!c.recentRuns().isEmpty()}">
+					<table class="admin-table">
+						<thead><tr><th>시작</th><th>걸린 시간</th><th>API 호출</th><th>새·바뀐 거래</th><th>실패</th><th>비고</th></tr></thead>
+						<tbody>
+						<tr th:each="r : ${c.recentRuns()}">
+							<td th:text="${r.startedText()}">시작</td>
+							<td class="num" th:text="${r.durationText()}">0초</td>
+							<td class="num" th:text="${r.calls()}">0</td>
+							<td class="num" th:text="${r.changedRows()}">0</td>
+							<td class="num" th:text="${r.failedTasks()}" th:classappend="${r.failedTasks() > 0} ? 'danger'">0</td>
+							<td th:text="${r.stoppedByQuota()} ? '하루 한도 도달' : (${r.remainingTasks() > 0} ? |${r.remainingTasks()}건 다음으로| : '')"></td>
+						</tr>
+						</tbody>
+					</table>
+				</div>
+				<p class="hint">6시간마다 국토교통부 실거래가 API에서 전국 256개 시군구 × 8종을 받습니다. 최근 3개월은 늦은 신고·계약 해제를 반영하려고 하루에 한 번 다시 받고, 할 일이 없는 실행은 기록하지 않습니다.</p>
+			</th:block>
+		</div>
+	</section>
+
 	<!-- 최근 7일 -->
 	<section class="admin-section">
 		<div class="block-title">
