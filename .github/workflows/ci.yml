@@ -70,6 +70,7 @@ jobs:
           scp -i ~/.ssh/deploy_key deploy/compose.prod.yaml $TARGET:app/
           # 이 저장소 몫의 설정만 올린다 (다른 사이트의 설정 파일은 건드리지 않음)
           scp -i ~/.ssh/deploy_key deploy/nginx/00-common.conf deploy/nginx/gateway.conf $TARGET:app/nginx/
+          scp -i ~/.ssh/deploy_key deploy/backup.sh $TARGET:app/
           ssh -i ~/.ssh/deploy_key $TARGET bash -s <<EOF
             set -e
             cd ~/app
@@ -84,6 +85,9 @@ jobs:
             docker compose -f compose.prod.yaml exec -T nginx nginx -s reload
             docker logout ghcr.io
             docker image prune -f
+            # 매일 04:30 DB 백업 (수집 배치가 도는 0·6·12·18시를 피함). 같은 줄이 있으면 바꿔 끼운다
+            chmod +x ~/app/backup.sh && mkdir -p ~/backups
+            (crontab -l 2>/dev/null | grep -v 'app/backup.sh' || true; echo "30 4 * * * \$HOME/app/backup.sh >> \$HOME/backups/backup.log 2>&1") | crontab -
           EOF
 
       - name: 헬스 체크
