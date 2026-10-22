@@ -30,7 +30,15 @@ public class AdminSession {
 
 	static final String COOKIE = "admin";
 
+	/**
+	 * 운영자 표시 쿠키. 관리자 쿠키는 /admin 에서만 실려, 포트폴리오 페이지에서는 운영자인지 알 수 없다.
+	 * 방문 통계에서 본인 방문을 빼려고 사이트 전체(/)에 따로 심는다. 서명 문구가 달라 관리자 권한으로는 쓸 수 없다.
+	 */
+	static final String OWNER_COOKIE = "owner";
+
 	private static final Duration MAX_AGE = Duration.ofHours(12);
+
+	private static final Duration OWNER_MAX_AGE = Duration.ofDays(365);
 
 	private final byte[] token;
 
@@ -66,6 +74,29 @@ public class AdminSession {
 		return base("", secure).maxAge(0).build();
 	}
 
+	/** 로그인할 때 함께 심는다. 로그아웃해도 남겨 두어 이 브라우저는 계속 통계에서 빠진다 */
+	ResponseCookie issueOwner(boolean secure) {
+		long expiresAt = clock.instant().plus(OWNER_MAX_AGE).getEpochSecond();
+		return ResponseCookie.from(OWNER_COOKIE, expiresAt + "." + sign("owner." + expiresAt))
+			.path("/")
+			.httpOnly(true)
+			.secure(secure)
+			.sameSite("Lax")
+			.maxAge(OWNER_MAX_AGE)
+			.build();
+	}
+
+	/** 운영자 본인의 브라우저인지 (방문 통계 제외용, 권한 확인에는 쓰지 않는다) */
+	public boolean isOwner(HttpServletRequest request) {
+		if (!enabled() || request.getCookies() == null) {
+			return false;
+		}
+		return Arrays.stream(request.getCookies())
+			.filter(cookie -> OWNER_COOKIE.equals(cookie.getName()))
+			.map(Cookie::getValue)
+			.anyMatch(value -> verify("owner.", value));
+	}
+
 	public boolean isLoggedIn(HttpServletRequest request) {
 		if (!enabled() || request.getCookies() == null) {
 			return false;
@@ -73,15 +104,15 @@ public class AdminSession {
 		return Arrays.stream(request.getCookies())
 			.filter(cookie -> COOKIE.equals(cookie.getName()))
 			.map(Cookie::getValue)
-			.anyMatch(this::verify);
+			.anyMatch(value -> verify("admin.", value));
 	}
 
-	private boolean verify(String value) {
+	private boolean verify(String purpose, String value) {
 		String[] parts = value.split("\\.");
 		if (parts.length != 2) {
 			return false;
 		}
-		byte[] expected = sign("admin." + parts[0]).getBytes(StandardCharsets.UTF_8);
+		byte[] expected = sign(purpose + parts[0]).getBytes(StandardCharsets.UTF_8);
 		if (!MessageDigest.isEqual(expected, parts[1].getBytes(StandardCharsets.UTF_8))) {
 			return false;
 		}

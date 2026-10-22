@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -64,6 +65,28 @@ class VisitIntegrationTest {
 	void 로봇과_운영자_본인은_세지_않는다() throws Exception {
 		mockMvc.perform(get("/").header("User-Agent", "Googlebot/2.1")).andExpect(status().isOk());
 		assertThat(count()).isZero();
+
+		// 관리자로 로그인하면 사이트 전체에 실리는 운영자 표시 쿠키가 생기고, 그 브라우저의 방문은 세지 않는다
+		var login = mockMvc.perform(post("/admin/login").param("token", "test-admin-token")).andReturn().getResponse();
+		jakarta.servlet.http.Cookie owner = login.getCookie("owner");
+		assertThat(owner).isNotNull();
+		assertThat(owner.getPath()).isEqualTo("/");
+		mockMvc.perform(get("/").header("User-Agent", CHROME).cookie(owner)).andExpect(status().isOk());
+		assertThat(count()).isZero();
+
+		// 위조한 값은 통하지 않는다
+		mockMvc.perform(get("/").header("User-Agent", CHROME).cookie(new jakarta.servlet.http.Cookie("owner", "9999999999.fake")));
+		assertThat(count()).isEqualTo(1);
+	}
+
+	@Test
+	void 새로고침은_30분_안에_한_번만_센다() throws Exception {
+		for (int i = 0; i < 5; i++) {
+			mockMvc.perform(get("/").header("User-Agent", CHROME)).andExpect(status().isOk());
+		}
+		assertThat(count()).isEqualTo(1);
+		mockMvc.perform(get("/jipdon").header("User-Agent", CHROME)); // 다른 페이지는 따로 센다
+		assertThat(count()).isEqualTo(2);
 	}
 
 	@Test
