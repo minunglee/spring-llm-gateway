@@ -47,7 +47,8 @@ class VisitInterceptor implements HandlerInterceptor {
 		}
 		try {
 			visits.record(request.getRequestURI(), request.getHeader(HttpHeaders.REFERER),
-					clientKeyResolver.resolve(request), request.getHeader(HttpHeaders.USER_AGENT));
+					clientKeyResolver.resolve(request), request.getHeader(HttpHeaders.USER_AGENT),
+					request.getHeader(HttpHeaders.ACCEPT_LANGUAGE));
 		}
 		catch (RuntimeException failure) {
 			log.warn("방문 기록 실패: {}", failure.toString());

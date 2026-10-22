@@ -47,13 +47,13 @@ class VisitIntegrationTest {
 
 	@Test
 	void 화면_페이지만_기록하고_IP는_남기지_않는다() throws Exception {
-		mockMvc.perform(get("/").header("User-Agent", CHROME).header("Referer", "https://www.saramin.co.kr/zf_user/x")
+		mockMvc.perform(get("/").header("User-Agent", CHROME).header("Accept-Language", "ko-KR,ko;q=0.9").header("Referer", "https://www.saramin.co.kr/zf_user/x")
 			.with(r -> {
 				r.setRemoteAddr("203.0.113.7");
 				return r;
 			})).andExpect(status().isOk());
-		mockMvc.perform(get("/jipdon").header("User-Agent", CHROME)).andExpect(status().isOk());
-		mockMvc.perform(get("/demo/budget").header("User-Agent", CHROME)); // API는 세지 않는다
+		mockMvc.perform(get("/jipdon").header("User-Agent", CHROME).header("Accept-Language", "ko-KR,ko;q=0.9")).andExpect(status().isOk());
+		mockMvc.perform(get("/demo/budget").header("User-Agent", CHROME).header("Accept-Language", "ko-KR,ko;q=0.9")); // API는 세지 않는다
 
 		assertThat(count()).isEqualTo(2);
 		var row = jdbc.queryForMap("SELECT path, referrer_host, visitor FROM page_view WHERE path = '/'");
@@ -71,27 +71,27 @@ class VisitIntegrationTest {
 		jakarta.servlet.http.Cookie owner = login.getCookie("owner");
 		assertThat(owner).isNotNull();
 		assertThat(owner.getPath()).isEqualTo("/");
-		mockMvc.perform(get("/").header("User-Agent", CHROME).cookie(owner)).andExpect(status().isOk());
+		mockMvc.perform(get("/").header("User-Agent", CHROME).header("Accept-Language", "ko-KR,ko;q=0.9").cookie(owner)).andExpect(status().isOk());
 		assertThat(count()).isZero();
 
 		// 위조한 값은 통하지 않는다
-		mockMvc.perform(get("/").header("User-Agent", CHROME).cookie(new jakarta.servlet.http.Cookie("owner", "9999999999.fake")));
+		mockMvc.perform(get("/").header("User-Agent", CHROME).header("Accept-Language", "ko-KR,ko;q=0.9").cookie(new jakarta.servlet.http.Cookie("owner", "9999999999.fake")));
 		assertThat(count()).isEqualTo(1);
 	}
 
 	@Test
 	void 새로고침은_30분_안에_한_번만_센다() throws Exception {
 		for (int i = 0; i < 5; i++) {
-			mockMvc.perform(get("/").header("User-Agent", CHROME)).andExpect(status().isOk());
+			mockMvc.perform(get("/").header("User-Agent", CHROME).header("Accept-Language", "ko-KR,ko;q=0.9")).andExpect(status().isOk());
 		}
 		assertThat(count()).isEqualTo(1);
-		mockMvc.perform(get("/jipdon").header("User-Agent", CHROME)); // 다른 페이지는 따로 센다
+		mockMvc.perform(get("/jipdon").header("User-Agent", CHROME).header("Accept-Language", "ko-KR,ko;q=0.9")); // 다른 페이지는 따로 센다
 		assertThat(count()).isEqualTo(2);
 	}
 
 	@Test
 	void 관리자_방문_통계_화면() throws Exception {
-		mockMvc.perform(get("/").header("User-Agent", CHROME));
+		mockMvc.perform(get("/").header("User-Agent", CHROME).header("Accept-Language", "ko-KR,ko;q=0.9"));
 		mockMvc.perform(get("/admin/visits").header("Authorization", "Bearer test-admin-token"))
 			.andExpect(status().isOk())
 			.andExpect(content().string(containsString("포트폴리오 · minunglee.cloud")))
