@@ -104,6 +104,8 @@ class AdminPageController {
 			return "redirect:/admin?error=invalid";
 		}
 		response.addHeader(HttpHeaders.SET_COOKIE, session.issue(request.isSecure()).toString());
+		// 이 브라우저는 방문 통계에서 뺀다 (포트폴리오 페이지에도 실리는 운영자 표시)
+		response.addHeader(HttpHeaders.SET_COOKIE, session.issueOwner(request.isSecure()).toString());
 		return "redirect:/admin";
 	}
 

@@ -41,7 +41,8 @@ class VisitInterceptor implements HandlerInterceptor {
 	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
 			Exception ex) {
 		if (!"GET".equals(request.getMethod()) || response.getStatus() != 200 || ex != null
-				|| !PAGES.contains(request.getRequestURI()) || adminSession.isLoggedIn(request)) {
+				|| !PAGES.contains(request.getRequestURI()) || adminSession.isOwner(request)
+				|| adminSession.isLoggedIn(request)) {
 			return;
 		}
 		try {
