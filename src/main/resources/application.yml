@@ -54,6 +54,15 @@ gateway:
       hourly: 30
       daily: 100
       daily-budget-usd: 0.50
+    # jipdon.com AI 계산기 안내. 짧은 분류·안내라 싼 모델로 충분하고, 예산을 따로 둬 포트폴리오 데모 몫을 지킨다
+    jipdon:
+      model: claude-haiku-5-5
+      hourly: 10
+      daily: 30
+      daily-budget-usd: 0.30
+  internal:
+    # 같은 서버의 다른 서비스가 /internal/llm 을 부를 때 보내는 공유 토큰 (비어 있으면 막는다)
+    jipdon-token: ${JIPDON_INTERNAL_TOKEN:}
   visit:
     # jipdon.com 방문 통계·수집 현황을 같은 서버의 jipdon-api에서 읽는다 (Docker 네트워크 안, 공유 토큰)
     jipdon-internal-url: http://jipdon-api:8090/internal

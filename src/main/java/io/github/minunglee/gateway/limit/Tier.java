@@ -9,6 +9,9 @@ public enum Tier {
 	GUEST,
 
 	/** 초대코드를 입력한 방문자 (면접관 등). 코드 기준으로 횟수를 센다 */
-	INVITE
+	INVITE,
+
+	/** 다른 서비스(jipdon.com)가 내부 API로 보낸 요청. 그 서비스가 넘겨준 최종 사용자 키 기준으로 센다 */
+	JIPDON
 
 }

@@ -32,7 +32,7 @@ class RateLimiterTest {
 	void setUp() {
 		redis.getConnectionFactory().getConnection().serverCommands().flushAll();
 		LimitProperties.TierPolicy policy = new LimitProperties.TierPolicy("model", 5, 20, BigDecimal.ONE);
-		LimitProperties properties = new LimitProperties("salt", ZoneId.of("Asia/Seoul"), policy, policy,
+		LimitProperties properties = new LimitProperties("salt", ZoneId.of("Asia/Seoul"), policy, policy, policy,
 				java.time.Duration.ZERO);
 		rateLimiter = new RateLimiter(redis, properties, clock);
 	}
