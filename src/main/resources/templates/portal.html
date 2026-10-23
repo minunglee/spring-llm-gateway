@@ -14,6 +14,12 @@
 		<p class="lead">만들고 끝내지 않습니다. 부하를 재고, 장애를 고치고, 데이터를 쌓으며 서비스를 키웁니다.</p>
 	</header>
 
+	<!-- 초대 링크로 들어온 면접관이 코드가 적용된 것을 바로 알 수 있게 -->
+	<div th:if="${requester.invited()}" class="invite-banner" role="status">
+		<span><strong>초대 링크로 접속하셨습니다.</strong> 이력서·경력기술서 열람과 Claude Sonnet 확장 체험이 열려 있습니다.</span>
+		<a th:href="@{/resume}">이력서 보기 →</a>
+	</div>
+
 	<section class="page-section">
 		<div class="block-title">
 			<span class="fold-head">
@@ -21,7 +27,7 @@
 				<span class="fold-name">프로필</span>
 			</span>
 		</div>
-		<a class="tile" th:classappend="${requester.invited()} ? '' : 'tile-locked'" th:href="@{/resume}">
+		<a class="tile" th:classappend="${requester.invited()} ? 'tile-open' : 'tile-locked'" th:href="@{/resume}">
 			<span class="tile-body">
 				<span class="tile-title">이력서 및 경력기술서</span>
 				<span class="tile-desc">경력, 프로젝트, 기술 스택</span>
