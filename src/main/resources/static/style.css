@@ -305,6 +305,37 @@ a.tile:hover {
 	font-size: 0.8rem;
 }
 
+.tile-open {
+	border-color: var(--accent);
+}
+
+.tile-open .tile-tag {
+	background: var(--accent);
+	border-color: var(--accent);
+	color: var(--surface);
+}
+
+.invite-banner {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 16px;
+	margin: -16px 0 32px;
+	padding: 14px 18px;
+	background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+	border: 1px solid var(--accent);
+	border-radius: 12px;
+	font-size: 0.95rem;
+}
+
+.invite-banner a {
+	margin-left: auto;
+	color: var(--accent);
+	font-weight: 600;
+	text-decoration: none;
+	white-space: nowrap;
+}
+
 .tile-locked .tile-tag {
 	border-color: var(--accent);
 	color: var(--accent);

@@ -162,12 +162,14 @@ class InviteIntegrationTest {
 		Cookie invite = redeem(createInvite("G사", 100), "10.1.0.11");
 
 		mockMvc.perform(get("/").cookie(invite))
+			.andExpect(content().string(containsString("초대 링크로 접속하셨습니다")))
 			.andExpect(content().string(containsString("초대코드 사용 중")))
 			.andExpect(content().string(not(containsString("G사"))));
 		mockMvc.perform(get("/gateway").cookie(invite))
 			.andExpect(content().string(containsString("claude-sonnet-5-5")))
 			.andExpect(content().string(not(containsString("G사"))));
 		mockMvc.perform(get("/gateway")).andExpect(content().string(containsString("게스트")));
+		mockMvc.perform(get("/")).andExpect(content().string(not(containsString("초대 링크로 접속하셨습니다"))));
 	}
 
 	@Test
