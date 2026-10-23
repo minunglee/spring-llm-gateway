@@ -72,7 +72,7 @@
 		<div class="block-title">
 			<span class="fold-head">
 				<span class="fold-label">KEY DESIGN</span>
-				<span class="fold-name">핵심 설계 4가지</span>
+				<span class="fold-name">핵심 설계 5가지</span>
 			</span>
 		</div>
 		<div class="design-grid">
@@ -95,6 +95,11 @@
 				<h3>등급별 예산과 초대코드</h3>
 				<p class="problem"><span class="label">문제</span><span>게스트가 예산을 다 쓰면 면접관도 데모를 못 봄</span></p>
 				<p>게스트·초대코드 예산을 분리하고, 회사별 초대코드(서명 쿠키)로 더 좋은 모델과 넉넉한 한도 제공</p>
+			</article>
+			<article class="card design">
+				<h3>다른 서비스가 쓰는 공통 AI 창구</h3>
+				<p class="problem"><span class="label">문제</span><span>두 번째 서비스(<a href="/jipdon">집돈</a>)에 AI를 붙일 때 비용 방어를 또 만들면 중복</span></p>
+				<p>내부 API를 열어 집돈의 AI 계산기 안내가 이 게이트웨이를 거치게 함. 같은 단계를 거치되 <strong>서비스 몫의 등급·예산을 따로</strong> 둠. 바깥에서는 Nginx가 막고, 토큰이 틀리면 입력 검사보다 먼저 404</p>
 			</article>
 		</div>
 	</section>
@@ -145,6 +150,11 @@
 				<p class="item-title">IP를 바꿔 사용량 제한을 우회할 수 있음</p>
 				<p class="problem"><span class="label">원인</span><span>클라이언트가 보낸 <code>X-Forwarded-For</code>를 Nginx가 그대로 이어붙임</span></p>
 				<p class="resolution"><span class="label">해결</span><span>Nginx에서 실제 접속 IP로 덮어쓰고, IP는 HMAC 해시로만 사용</span></p>
+			</div>
+			<div class="item">
+				<p class="item-title">배포는 성공인데 Nginx 다시 읽기·백업 등록이 안 됨</p>
+				<p class="problem"><span class="label">원인</span><span>ssh로 보낸 배포 스크립트를 <code>docker compose exec</code>가 표준 입력으로 삼켜, 그 뒤 명령이 한 번도 실행되지 않음. 다른 저장소 배포가 Nginx를 다시 읽어 가려져 있었음</span></p>
+				<p class="resolution"><span class="label">해결</span><span>배포 후 서버에서 결과(crontab)를 직접 확인하다 발견 → exec에 <code>&lt; /dev/null</code>. "초록불 = 성공"이 아니라 결과물을 확인</span></p>
 			</div>
 		</div>
 	</section>
