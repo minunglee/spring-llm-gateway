@@ -40,7 +40,7 @@ class BudgetGuardTest {
 		redis.getConnectionFactory().getConnection().serverCommands().flushAll();
 		// 일일 예산 $0.001 = 1,000 마이크로달러, 자리가 나길 최대 300ms 기다림
 		LimitProperties.TierPolicy policy = new LimitProperties.TierPolicy("model", 5, 20, new BigDecimal("0.001"));
-		LimitProperties properties = new LimitProperties("salt", ZoneId.of("Asia/Seoul"), policy, policy,
+		LimitProperties properties = new LimitProperties("salt", ZoneId.of("Asia/Seoul"), policy, policy, policy,
 				Duration.ofMillis(300));
 		budgetGuard = new BudgetGuard(redis, properties, clock);
 	}

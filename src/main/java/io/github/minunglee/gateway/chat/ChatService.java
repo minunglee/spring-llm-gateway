@@ -71,8 +71,12 @@ public class ChatService {
 	}
 
 	public ChatResult chat(Requester requester, String message, Trace trace) {
+		return chat(requester, new LlmRequest(requester.model(), message, llmProperties.maxTokens()), trace);
+	}
+
+	/** 모델·시스템 프롬프트·답변 길이를 호출하는 쪽이 정하는 요청 (내부 API). 지키는 단계는 체험과 같다 */
+	public ChatResult chat(Requester requester, LlmRequest request, Trace trace) {
 		Instant startedAt = clock.instant();
-		LlmRequest request = new LlmRequest(requester.model(), message, llmProperties.maxTokens());
 		long reserveAmount = maxCostMicroUsd(request);
 
 		RateLimitResult limit;
@@ -146,8 +150,8 @@ public class ChatService {
 
 	/** 나올 수 있는 최대 비용. 입력은 상한 추정치, 출력은 max_tokens 전부를 쓴다고 가정한다 */
 	long maxCostMicroUsd(LlmRequest request) {
-		long maxInputTokens = (long) request.userMessage().length() * TOKENS_PER_CHAR_UPPER_BOUND
-				+ INPUT_TOKEN_OVERHEAD;
+		int inputChars = request.userMessage().length() + (request.system() == null ? 0 : request.system().length());
+		long maxInputTokens = (long) inputChars * TOKENS_PER_CHAR_UPPER_BOUND + INPUT_TOKEN_OVERHEAD;
 		return costCalculator.costMicroUsd(request.model(), maxInputTokens, request.maxTokens());
 	}
 

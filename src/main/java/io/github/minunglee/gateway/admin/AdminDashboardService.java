@@ -79,7 +79,7 @@ class AdminDashboardService {
 	}
 
 	Dashboard dashboard(UsageRange range) {
-		return new Dashboard(llmClient.mode(), killSwitch.isOn(), List.of(budget(Tier.GUEST), budget(Tier.INVITE)),
+		return new Dashboard(llmClient.mode(), killSwitch.isOn(), List.of(budget(Tier.GUEST), budget(Tier.INVITE), budget(Tier.JIPDON)),
 				range, dailyStats(range), invites(), events(null, null, 30, 0));
 	}
 
@@ -144,7 +144,12 @@ class AdminDashboardService {
 	private Budget budget(Tier tier) {
 		long used = budgetGuard.usedTodayMicroUsd(tier);
 		long limit = budgetGuard.limitMicroUsd(tier);
-		return new Budget(tier == Tier.GUEST ? "게스트" : "초대코드", CostCalculator.formatUsd(used),
+		String name = switch (tier) {
+			case GUEST -> "게스트";
+			case INVITE -> "초대코드";
+			case JIPDON -> "집돈 AI 안내";
+		};
+		return new Budget(name, CostCalculator.formatUsd(used),
 				CostCalculator.formatUsd(limit), Math.min(100.0, used * 100.0 / limit));
 	}
 
