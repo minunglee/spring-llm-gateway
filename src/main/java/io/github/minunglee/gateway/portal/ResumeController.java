@@ -37,6 +37,7 @@ class ResumeController {
 		this.resumeStore = resumeStore;
 	}
 
+	/** GET /resume: 초대코드가 있으면 이력서를 보여주고 열람을 기록, 없으면 잠금 화면 */
 	@GetMapping("/resume")
 	String resume(Model model, HttpServletRequest request) {
 		Requester requester = requesterResolver.resolve(request);
@@ -50,6 +51,7 @@ class ResumeController {
 		return "resume";
 	}
 
+	/** GET /resume/pdf: 초대코드가 있으면 PDF를 내려주고 다운로드를 기록, 없으면 /resume 로 보낸다 */
 	@GetMapping("/resume/pdf")
 	ResponseEntity<Resource> pdf(HttpServletRequest request) {
 		Requester requester = requesterResolver.resolve(request);

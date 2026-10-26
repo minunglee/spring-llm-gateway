@@ -24,9 +24,11 @@ public record VisitStats(int days, Count today, Count last7, Count last30, List<
 
 	}
 
+	/** 순위 한 줄 (값, 횟수) */
 	public record Rank(String key, long count) {
 	}
 
+	/** 기간 중 조회가 가장 많은 날의 조회 수 (막대 길이 기준) */
 	public long maxDailyViews() {
 		return daily.stream().mapToLong(Day::views).max().orElse(0);
 	}

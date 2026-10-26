@@ -13,6 +13,7 @@ class TracedChatException extends RuntimeException {
 		this.trace = trace;
 	}
 
+	/** 막히기 전까지 거친 단계 (오류 응답에 함께 실린다) */
 	Trace trace() {
 		return trace;
 	}

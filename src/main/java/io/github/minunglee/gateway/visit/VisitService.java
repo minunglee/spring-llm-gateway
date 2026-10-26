@@ -77,6 +77,7 @@ public class VisitService {
 				rank("path", since), rank("referrer_host", since), rank("device", since));
 	}
 
+	/** 오늘부터 거슬러 days일 동안의 조회·순방문자 합계 */
 	private static VisitStats.Count sum(List<VisitStats.Day> daily, LocalDate today, int days) {
 		LocalDate from = today.minusDays(days - 1L);
 		long views = 0;
@@ -90,6 +91,7 @@ public class VisitService {
 		return new VisitStats.Count(views, visitors);
 	}
 
+	/** 열(경로·유입 사이트·기기)별 많이 나온 순 상위 10개 */
 	private List<VisitStats.Rank> rank(String column, Timestamp since) {
 		return jdbc.query("SELECT " + column + " AS k, count(*) AS c FROM page_view WHERE viewed_at >= ? AND " + column
 				+ " IS NOT NULL GROUP BY 1 ORDER BY 2 DESC, 1 LIMIT 10",
@@ -117,6 +119,7 @@ public class VisitService {
 		}
 	}
 
+	/** 순방문자 키: (IP 해시 + 브라우저 + 날짜)의 해시 앞 16자. 같은 날 같은 사람만 같고, 다음 날이면 연결되지 않는다 */
 	private static String visitor(String clientKey, String userAgent, LocalDate date) {
 		try {
 			byte[] hash = MessageDigest.getInstance("SHA-256")

@@ -21,6 +21,7 @@ public class AnthropicLlmClient implements LlmClient {
 		this.client = client;
 	}
 
+	/** Claude 호출. 거절(refusal)이면 안내 문구, 답변이 길이 한도에서 잘렸으면 표시를 붙인다 (시스템 프롬프트로 형식을 정한 내부 요청은 제외) */
 	@Override
 	public LlmResponse complete(LlmRequest request) {
 		MessageCreateParams.Builder builder = MessageCreateParams.builder()
@@ -61,6 +62,7 @@ public class AnthropicLlmClient implements LlmClient {
 		return new LlmResponse(text, request.model(), message.usage().inputTokens(), message.usage().outputTokens());
 	}
 
+	/** 로그와 화면에 표시할 동작 모드 */
 	@Override
 	public String mode() {
 		return "anthropic";

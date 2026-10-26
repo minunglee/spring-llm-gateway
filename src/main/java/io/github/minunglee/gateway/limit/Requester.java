@@ -14,6 +14,7 @@ package io.github.minunglee.gateway.limit;
 public record Requester(Tier tier, String rateKey, Long inviteCodeId, String inviteLabel, String model, int hourly,
 		int daily) {
 
+	/** 초대코드 사용자인지 */
 	public boolean invited() {
 		return tier == Tier.INVITE;
 	}

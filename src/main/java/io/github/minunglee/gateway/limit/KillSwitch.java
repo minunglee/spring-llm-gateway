@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class KillSwitch {
 
+	/** 긴급 차단 상태를 담는 Redis 키 (값 "1"이면 켜짐) */
 	private static final String KEY = "gateway:killswitch";
 
 	private final StringRedisTemplate redis;
@@ -18,10 +19,12 @@ public class KillSwitch {
 		this.redis = redis;
 	}
 
+	/** 긴급 차단이 켜져 있는지 */
 	public boolean isOn() {
 		return "1".equals(redis.opsForValue().get(KEY));
 	}
 
+	/** 켜면 키를 쓰고, 끄면 키를 지운다 */
 	public void set(boolean on) {
 		if (on) {
 			redis.opsForValue().set(KEY, "1");

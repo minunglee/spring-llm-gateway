@@ -28,13 +28,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class BudgetGuard {
 
+	/** 날짜별 예산 키 보관 기간. 하루가 지나면 쓸모없지만 시간대 경계를 넉넉히 덮으려고 이틀 */
 	private static final Duration KEY_TTL = Duration.ofDays(2);
 
 	/** 자리가 나길 기다릴 때 다시 시도하는 간격 (여러 요청이 한꺼번에 몰리지 않도록 조금씩 흔든다) */
 	private static final long RETRY_MIN_MS = 20;
 
+	/** 재시도 간격에 더하는 무작위 0~30ms (기다리던 요청들이 한꺼번에 다시 몰리지 않게) */
 	private static final long RETRY_JITTER_MS = 30;
 
+	/** budget_reserve.lua 반환값: 실제로 쓴 돈만으로 한도를 넘음 (기다려도 소용없어 바로 포기) */
 	private static final long EXHAUSTED = -1;
 
 	private final RedisScript<Long> reserveScript = RedisScript
@@ -86,6 +89,7 @@ public class BudgetGuard {
 				String.valueOf(reservation.amountMicroUsd()), String.valueOf(actualMicroUsd));
 	}
 
+	/** AI 호출이 실패했을 때 선차감액을 전부 돌려준다 (실제 비용 0으로 정산) */
 	public void refund(Reservation reservation) {
 		settle(reservation, 0);
 	}
@@ -97,18 +101,22 @@ public class BudgetGuard {
 				- parse(redis.opsForValue().get(inflightKey(tier, day)));
 	}
 
+	/** 등급의 하루 예산 (마이크로달러) */
 	public long limitMicroUsd(Tier tier) {
 		return properties.policy(tier).dailyBudgetMicroUsd();
 	}
 
+	/** Redis 값(없으면 null)을 숫자로 */
 	private static long parse(String value) {
 		return value == null ? 0 : Long.parseLong(value);
 	}
 
+	/** 오늘 누적 금액 키 (정산된 실제 비용 + 아직 정산 전 선차감액) */
 	private static String totalKey(Tier tier, String day) {
 		return "budget:" + tier.name().toLowerCase() + ":" + day;
 	}
 
+	/** 아직 정산 전인 선차감액 합계 키 ("실제 소진"과 "일시적으로 꽉 참"을 구분하는 데 쓴다) */
 	private static String inflightKey(Tier tier, String day) {
 		return "budget-inflight:" + tier.name().toLowerCase() + ":" + day;
 	}

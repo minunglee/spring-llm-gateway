@@ -28,6 +28,7 @@ import org.springframework.util.StringUtils;
  */
 public class AdminSession {
 
+	/** 관리자 로그인 쿠키 이름 */
 	static final String COOKIE = "admin";
 
 	/**
@@ -36,8 +37,10 @@ public class AdminSession {
 	 */
 	static final String OWNER_COOKIE = "owner";
 
+	/** 관리자 로그인 유지 시간. 길게 두면 쿠키가 새었을 때 위험이 커서 반나절로 둔다 */
 	private static final Duration MAX_AGE = Duration.ofHours(12);
 
+	/** 운영자 표시 쿠키 유지 시간 (권한이 없는 표시용이라 길게 둔다) */
 	private static final Duration OWNER_MAX_AGE = Duration.ofDays(365);
 
 	private final byte[] token;
@@ -55,21 +58,25 @@ public class AdminSession {
 		this.clock = clock;
 	}
 
+	/** 관리자 토큰이 설정돼 있는지. 없으면 관리자 기능 전체를 숨긴다 */
 	boolean enabled() {
 		return token != null;
 	}
 
+	/** 입력한 토큰이 관리자 토큰과 같은지 (걸리는 시간으로 값을 추측할 수 없게 상수 시간 비교) */
 	boolean matchesToken(String candidate) {
 		return token != null && candidate != null
 				&& MessageDigest.isEqual(token, candidate.strip().getBytes(StandardCharsets.UTF_8));
 	}
 
+	/** 관리자 로그인 쿠키 발급: 값은 "만료시각.서명", 12시간 유지 */
 	ResponseCookie issue(boolean secure) {
 		long expiresAt = clock.instant().plus(MAX_AGE).getEpochSecond();
 		String payload = "admin." + expiresAt;
 		return base(expiresAt + "." + sign(payload), secure).maxAge(MAX_AGE).build();
 	}
 
+	/** 관리자 로그인 쿠키를 지운다 (만료 시간 0) */
 	ResponseCookie clear(boolean secure) {
 		return base("", secure).maxAge(0).build();
 	}
@@ -97,6 +104,7 @@ public class AdminSession {
 			.anyMatch(value -> verify("owner.", value));
 	}
 
+	/** 서명이 맞고 만료되지 않은 관리자 쿠키가 있는지 */
 	public boolean isLoggedIn(HttpServletRequest request) {
 		if (!enabled() || request.getCookies() == null) {
 			return false;
@@ -107,6 +115,11 @@ public class AdminSession {
 			.anyMatch(value -> verify("admin.", value));
 	}
 
+	/**
+	 * "만료시각.서명" 쿠키 값 검증: 서명이 맞고(위조 아님) 아직 만료 전이어야 true
+	 *
+	 * @param purpose 서명에 섞는 용도 문자열 ("admin." / "owner."). 관리자 쿠키와 운영자 쿠키를 서로 바꿔 쓸 수 없게 한다
+	 */
 	private boolean verify(String purpose, String value) {
 		String[] parts = value.split("\\.");
 		if (parts.length != 2) {
@@ -124,10 +137,12 @@ public class AdminSession {
 		}
 	}
 
+	/** 관리자 쿠키 공통 속성: /admin 에서만 전송, 스크립트 접근 금지, 다른 사이트 요청에는 안 실림(Strict) */
 	private ResponseCookie.ResponseCookieBuilder base(String value, boolean secure) {
 		return ResponseCookie.from(COOKIE, value).path("/admin").httpOnly(true).secure(secure).sameSite("Strict");
 	}
 
+	/** HMAC-SHA256 서명 (URL에 안전한 Base64) */
 	private String sign(String payload) {
 		try {
 			Mac mac = Mac.getInstance("HmacSHA256");

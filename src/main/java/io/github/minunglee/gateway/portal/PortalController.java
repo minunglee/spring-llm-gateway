@@ -21,6 +21,11 @@ class PortalController {
 		this.requesterResolver = requesterResolver;
 	}
 
+	/**
+	 * GET /: 포트폴리오 메인
+	 *
+	 * @param invite "invalid"면 초대 링크의 코드가 틀렸다는 안내를 보여준다
+	 */
 	@GetMapping("/")
 	String index(Model model, HttpServletRequest request,
 			@RequestParam(required = false) String invite) {

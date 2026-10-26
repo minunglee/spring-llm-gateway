@@ -20,6 +20,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record LimitProperties(String ipSalt, ZoneId zone, TierPolicy guest, TierPolicy invite, TierPolicy jipdon,
 		Duration budgetWait) {
 
+	/** 등급별 정책 (모델, 시간당·하루 한도, 하루 예산) */
 	public TierPolicy policy(Tier tier) {
 		return switch (tier) {
 			case GUEST -> guest;

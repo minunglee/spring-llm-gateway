@@ -32,8 +32,10 @@ import org.springframework.stereotype.Service;
 @Service
 class AdminDashboardService {
 
+	/** "열람 기록 전체" 화면의 한 페이지 줄 수 */
 	static final int PAGE_SIZE = 50;
 
+	/** 화면에 보여줄 시각 형식 (한국 시간으로 바꾼 뒤 적용) */
 	private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
 	/** 열람 기록과 AI 질문을 하나로 합친 이벤트 (시각, 코드, 행동, 비용) */
@@ -48,6 +50,7 @@ class AdminDashboardService {
 			)
 			""";
 
+	/** 이벤트 목록·개수 쿼리에 함께 붙이는 조건. 코드나 행동을 고르지 않았으면(null) 그 조건은 건너뛴다 */
 	private static final String EVENT_FILTER = """
 			WHERE (CAST(:codeId AS BIGINT) IS NULL OR e.code_id = :codeId)
 			  AND (CAST(:action AS VARCHAR) IS NULL OR e.action = :action)
@@ -78,6 +81,7 @@ class AdminDashboardService {
 		this.clock = clock;
 	}
 
+	/** 관리자 첫 화면 데이터: AI 모드, 긴급 차단, 등급별 예산(게스트·초대코드·집돈), 기간별 사용량, 초대코드 현황, 최근 이벤트 */
 	Dashboard dashboard(UsageRange range) {
 		return new Dashboard(llmClient.mode(), killSwitch.isOn(), List.of(budget(Tier.GUEST), budget(Tier.INVITE), budget(Tier.JIPDON)),
 				range, dailyStats(range), invites(), events(null, null, 30, 0));
@@ -120,6 +124,7 @@ class AdminDashboardService {
 		return new AccessPage(rows, safePage, totalPages, total, codeId, blankToNull(action), codes, ACTIONS);
 	}
 
+	/** 열람 기록과 초대코드 사용자의 AI 질문을 합친 이벤트를 최신순으로 (코드·행동 필터, limit/offset으로 페이지 나누기) */
 	private List<Event> events(Long codeId, String action, int limit, long offset) {
 		return jdbc.sql(EVENTS + """
 				SELECT e.at, e.code_id, c.label, e.action, e.cost
@@ -141,6 +146,7 @@ class AdminDashboardService {
 			.list();
 	}
 
+	/** 등급의 오늘 예산 사용 현황 (진행 막대에 쓸 퍼센트 포함) */
 	private Budget budget(Tier tier) {
 		long used = budgetGuard.usedTodayMicroUsd(tier);
 		long limit = budgetGuard.limitMicroUsd(tier);
@@ -187,6 +193,7 @@ class AdminDashboardService {
 		}).sorted((a, b) -> b.day().compareTo(a.day())).toList();
 	}
 
+	/** 요청 기록이 처음 생긴 날 ("전체" 기간 사용량 표의 시작일) */
 	private Optional<LocalDate> firstRecordDay() {
 		// 기록이 없으면 MIN이 NULL 한 행을 돌려준다
 		return jdbc.sql("SELECT MIN(created_at) FROM request_log")
@@ -195,6 +202,7 @@ class AdminDashboardService {
 			.map(timestamp -> timestamp.toInstant().atZone(zone).toLocalDate());
 	}
 
+	/** 초대코드별 현황 표: 상태, 만료일, 코드 입력·이력서 열람·PDF·AI 질문 횟수, 마지막 접근 시각 */
 	private List<InviteRow> invites() {
 		Map<Long, Long> chats = jdbc
 			.sql("SELECT invite_code_id, COUNT(*) AS c FROM request_log WHERE invite_code_id IS NOT NULL GROUP BY 1")
@@ -211,6 +219,7 @@ class AdminDashboardService {
 			.toList();
 	}
 
+	/** 초대코드 상태: 폐기 / 사용 중 / 만료 */
 	private String status(InviteService.InviteSummary summary, Instant now) {
 		if (summary.revoked()) {
 			return "폐기";
@@ -218,19 +227,23 @@ class AdminDashboardService {
 		return now.isBefore(summary.expiresAt()) ? "사용 중" : "만료";
 	}
 
+	/** 이벤트 종류와 화면에 보일 이름 (열람 기록 화면의 행동 필터 선택지로도 쓴다) */
 	private static final List<Option> ACTIONS = List.of(new Option("REDEEM", "코드 입력"),
 			new Option("RESUME_VIEW", "이력서 열람"), new Option("RESUME_PDF", "PDF 다운로드"),
 			new Option("AI_CHAT", "AI 질문"));
 
+	/** 이벤트 코드(REDEEM 등)를 화면 이름(코드 입력 등)으로 */
 	private String actionName(String action) {
 		return ACTIONS.stream().filter(option -> option.value().equals(action)).map(Option::label).findFirst()
 			.orElse(action);
 	}
 
+	/** 시각을 한국 시간 "yyyy-MM-dd HH:mm" 으로 */
 	private String format(Instant instant) {
 		return DATE_TIME.format(instant.atZone(zone));
 	}
 
+	/** 빈 필터 값은 null로 바꿔 쿼리에서 "조건 없음"으로 처리되게 한다 */
 	private static String blankToNull(String value) {
 		return value == null || value.isBlank() ? null : value;
 	}
@@ -275,6 +288,12 @@ class AdminDashboardService {
 
 	}
 
+	/**
+	 * 관리자 첫 화면 전체 데이터
+	 *
+	 * @param llmMode mock(가짜 응답) 또는 anthropic(실제 호출)
+	 * @param recentEvents 최근 열람·AI 질문 이벤트
+	 */
 	record Dashboard(String llmMode, boolean killSwitch, List<Budget> budgets, UsageRange range,
 			List<DailyStat> daily, List<InviteRow> invites, List<Event> recentEvents) {
 
@@ -284,29 +303,47 @@ class AdminDashboardService {
 
 	}
 
+	/** @param tier 화면에 보일 등급 이름, used 오늘 쓴 금액, limit 하루 한도, usedPercent 진행 막대 길이(0~100) */
 	record Budget(String tier, String used, String limit, double usedPercent) {
 	}
 
+	/**
+	 * 사용량 표의 하루 한 줄
+	 *
+	 * @param inviteRequests 그중 초대코드 사용자 요청
+	 * @param notSuccess 실패하거나 데모 응답으로 대체된 요청
+	 * @param barPercent 기간 중 가장 많은 날 대비 막대 길이
+	 */
 	record DailyStat(String day, long requests, long inviteRequests, long notSuccess, String cost,
 			double barPercent) {
 	}
 
+	/** 초대코드 현황 표의 한 줄 (label은 회사명 등 관리자만 보는 이름) */
 	record InviteRow(long id, String label, String status, String expiresAt, int dailyLimit, long redeems,
 			long resumeViews, long pdfDownloads, long llmRequests, String lastAccess, boolean revoked) {
 	}
 
+	/** 회사별 상세 화면의 날짜별 집계 */
 	record InviteDay(String day, long redeems, long resumeViews, long pdfDownloads, long chats) {
 	}
 
+	/** 회사(초대코드)별 상세: 요약, 날짜별 집계, 전체 기록 */
 	record InviteDetail(InviteRow invite, List<InviteDay> days, List<Event> events) {
 	}
 
+	/**
+	 * 이벤트 한 건
+	 *
+	 * @param detail AI 질문이면 그 비용, 그 밖에는 빈 값
+	 */
 	record Event(String at, long codeId, String label, String action, String detail) {
 	}
 
+	/** 선택 상자 항목 (값, 화면 이름) */
 	record Option(String value, String label) {
 	}
 
+	/** "열람 기록 전체" 한 페이지와 필터 상태 */
 	record AccessPage(List<Event> events, int page, int totalPages, long total, Long codeId, String action,
 			List<Option> codes, List<Option> actions) {
 

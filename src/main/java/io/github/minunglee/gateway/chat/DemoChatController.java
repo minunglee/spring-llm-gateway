@@ -40,6 +40,7 @@ class DemoChatController {
 		this.turnstileVerifier = turnstileVerifier;
 	}
 
+	/** POST /demo/chat: 체험 화면 질문. 요청자 판별 → 봇 확인(게스트만) → ChatService 처리 → 결과와 처리 단계를 돌려준다 */
 	@PostMapping("/demo/chat")
 	DemoChatResponse chat(@Valid @RequestBody DemoChatRequest request, HttpServletRequest servletRequest) {
 		Requester requester = requesterResolver.resolve(servletRequest);
@@ -87,10 +88,12 @@ class DemoChatController {
 			message = "질문은 2,000자 이하로 입력해주세요") String message, @Size(max = 4096) String turnstileToken) {
 	}
 
+	/** 체험 화면 응답: 답변, 사용 모델·토큰·비용, 남은 횟수, 거친 단계 */
 	record DemoChatResponse(String answer, String model, String mode, long inputTokens, long outputTokens,
 			String cost, long latencyMs, int remainingThisHour, int remainingToday, List<Trace.Step> trace) {
 	}
 
+	/** 체험 화면 예산 막대: 오늘 쓴 금액, 한도, 퍼센트 */
 	record BudgetResponse(String used, String limit, double usedPercent) {
 	}
 

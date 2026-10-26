@@ -37,6 +37,7 @@ public class InviteService {
 		return new CreatedInvite(saved, code);
 	}
 
+	/** 입력한 코드를 해시로 찾아, 유효하면 "코드 입력" 기록을 남기고 돌려준다 */
 	@Transactional
 	public Optional<InviteCode> redeem(String input) {
 		Optional<InviteCode> code = inviteCodeRepository.findByCodeHash(InviteCodes.hash(input))
@@ -50,11 +51,13 @@ public class InviteService {
 		return inviteCodeRepository.findById(id).filter(code -> code.isActive(clock.instant()));
 	}
 
+	/** 열람 기록 한 건 저장 (이력서 열람, PDF 다운로드 등) */
 	@Transactional
 	public void log(long inviteCodeId, InviteAccessLog.Action action) {
 		accessLogRepository.save(new InviteAccessLog(inviteCodeId, action, clock.instant()));
 	}
 
+	/** 코드 폐기 (없는 ID면 아무것도 하지 않음) */
 	@Transactional
 	public void revoke(long id) {
 		inviteCodeRepository.findById(id).ifPresent(InviteCode::revoke);
@@ -81,9 +84,11 @@ public class InviteService {
 		}).sorted((a, b) -> Long.compare(b.id(), a.id())).toList();
 	}
 
+	/** 발급 결과. code는 원문이라 이때만 볼 수 있다 */
 	public record CreatedInvite(InviteCode invite, String code) {
 	}
 
+	/** 관리자 화면용 코드별 요약: 코드 입력·이력서 열람·PDF 다운로드 횟수와 마지막 접근 시각 */
 	public record InviteSummary(long id, String label, int dailyLimit, Instant expiresAt, boolean revoked,
 			long redeemCount, long resumeViews, long resumePdfDownloads, Instant lastAccessAt) {
 	}

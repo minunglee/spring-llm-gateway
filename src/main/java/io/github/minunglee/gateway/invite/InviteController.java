@@ -32,6 +32,7 @@ class InviteController {
 	/** 코드 무작위 대입을 막기 위한 IP당 입력 시도 한도 */
 	private static final int REDEEM_HOURLY = 10;
 
+	/** 같은 IP의 하루 코드 입력 시도 한도 */
 	private static final int REDEEM_DAILY = 30;
 
 	private final InviteService inviteService;
@@ -50,6 +51,7 @@ class InviteController {
 		this.clientKeyResolver = clientKeyResolver;
 	}
 
+	/** POST /invite: 입력한 코드가 유효하면 서명 쿠키를 심고 만료 시각을 돌려준다. 시도 횟수는 IP별로 제한 */
 	@PostMapping("/invite")
 	ResponseEntity<?> redeem(@Valid @RequestBody RedeemRequest request, HttpServletRequest servletRequest) {
 		RateLimitResult limit = rateLimiter.tryAcquire("redeem:" + clientKeyResolver.resolve(servletRequest),
@@ -81,6 +83,7 @@ class InviteController {
 			.orElseGet(() -> redirect("/?invite=invalid", null));
 	}
 
+	/** 303 이동 응답. 초대 링크 주소(코드 포함)가 다른 사이트로 새지 않게 Referrer-Policy를 막는다 */
 	private static ResponseEntity<Void> redirect(String location, String cookie) {
 		ResponseEntity.BodyBuilder builder = ResponseEntity.status(HttpStatus.SEE_OTHER)
 			.header(HttpHeaders.LOCATION, location)
@@ -92,6 +95,7 @@ class InviteController {
 		return builder.build();
 	}
 
+	/** DELETE /invite: 초대코드 쿠키를 지워 게스트로 돌아간다 */
 	@DeleteMapping("/invite")
 	ResponseEntity<Void> clear(HttpServletRequest servletRequest) {
 		return ResponseEntity.noContent()
@@ -99,6 +103,7 @@ class InviteController {
 			.build();
 	}
 
+	/** @param code 사용자가 입력한 코드 (소문자·공백·하이픈 섞여도 됨) */
 	record RedeemRequest(@NotBlank(message = "초대코드를 입력해주세요") @Size(max = 40) String code) {
 	}
 

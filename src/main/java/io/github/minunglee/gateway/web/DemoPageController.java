@@ -27,6 +27,7 @@ class DemoPageController {
 		this.turnstileVerifier = turnstileVerifier;
 	}
 
+	/** GET /gateway: 게이트웨이 소개와 체험 화면. 게스트에게만 봇 확인 위젯을 보여준다 */
 	@GetMapping("/gateway")
 	String gateway(Model model, HttpServletRequest request) {
 		model.addAttribute("mode", llmClient.mode());

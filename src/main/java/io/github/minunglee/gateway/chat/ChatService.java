@@ -39,6 +39,7 @@ public class ChatService {
 	/** 선차감 시 입력 토큰 상한 추정: 글자당 최대 2토큰 + 메시지 구조 여유분 */
 	private static final int TOKENS_PER_CHAR_UPPER_BOUND = 2;
 
+	/** 선차감 시 입력 토큰에 더하는 여유분 (메시지 구조·역할 표시 등 글자 수로 안 잡히는 토큰) */
 	private static final int INPUT_TOKEN_OVERHEAD = 100;
 
 	private final LlmClient llmClient;
@@ -70,6 +71,7 @@ public class ChatService {
 		this.clock = clock;
 	}
 
+	/** 체험 화면 질문: 요청자 등급의 모델과 기본 답변 길이로 아래 흐름을 실행한다 */
 	public ChatResult chat(Requester requester, String message, Trace trace) {
 		return chat(requester, new LlmRequest(requester.model(), message, llmProperties.maxTokens()), trace);
 	}
@@ -155,6 +157,7 @@ public class ChatService {
 		return costCalculator.costMicroUsd(request.model(), maxInputTokens, request.maxTokens());
 	}
 
+	/** AI를 부르지 않고 안내 문구를 돌려준다 (긴급 차단, 예산 소진, Redis 장애). 비용 0으로 기록한다 */
 	private ChatResult degraded(Requester requester, LlmRequest request, RateLimitResult limit, Instant startedAt,
 			Degraded reason, Trace trace) {
 		long latencyMs = elapsedMs(startedAt);
@@ -166,6 +169,7 @@ public class ChatService {
 				remainingToday, trace);
 	}
 
+	/** 요청 시작부터 지금까지 걸린 시간(ms) */
 	private long elapsedMs(Instant startedAt) {
 		return Duration.between(startedAt, clock.instant()).toMillis();
 	}
@@ -184,6 +188,13 @@ public class ChatService {
 
 	}
 
+	/**
+	 * 요청 처리 결과
+	 *
+	 * @param mode mock / anthropic / demo(AI를 부르지 않음)
+	 * @param costMicroUsd 실제 비용 (마이크로달러)
+	 * @param trace 거친 단계 기록 (체험 화면 표시용)
+	 */
 	public record ChatResult(String answer, String model, String mode, long inputTokens, long outputTokens,
 			long costMicroUsd, long latencyMs, int remainingThisHour, int remainingToday, Trace trace) {
 	}

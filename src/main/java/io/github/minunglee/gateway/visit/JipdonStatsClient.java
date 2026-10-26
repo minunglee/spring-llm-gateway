@@ -38,14 +38,17 @@ public class JipdonStatsClient {
 		this.token = token;
 	}
 
+	/** jipdon.com 최근 days일 방문 통계 */
 	public Optional<VisitStats> fetch(int days) {
 		return get("/stats?days=" + days, VisitStats.class);
 	}
 
+	/** jipdon-api 실거래가 수집 현황 */
 	public Optional<JipdonCollectStatus> fetchCollect() {
 		return get("/collect", JipdonCollectStatus.class);
 	}
 
+	/** 내부 API 공통 호출. 토큰이 없거나(로컬) 실패하면 빈 값 → 화면에 "연결되지 않음" */
 	private <T> Optional<T> get(String path, Class<T> type) {
 		if (token.isBlank()) {
 			return Optional.empty();
