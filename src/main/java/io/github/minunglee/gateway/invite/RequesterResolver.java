@@ -33,6 +33,7 @@ public class RequesterResolver {
 		this.limitProperties = limitProperties;
 	}
 
+	/** 요청자 판별: 유효한 초대코드 쿠키가 있으면 INVITE(코드 ID로 사용량 집계, 코드별 하루 한도), 없으면 GUEST(IP 해시로 집계) */
 	public Requester resolve(HttpServletRequest request) {
 		Optional<InviteCode> invite = inviteCookie.read(request).flatMap(inviteService::findActive);
 		if (invite.isPresent()) {

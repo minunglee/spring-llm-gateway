@@ -23,6 +23,7 @@ class VisitInterceptor implements HandlerInterceptor {
 
 	private static final Logger log = LoggerFactory.getLogger(VisitInterceptor.class);
 
+	/** 방문을 세는 페이지 (API·정적 파일·관리자 화면은 세지 않음) */
 	static final Set<String> PAGES = Set.of("/", "/gateway", "/jipdon", "/resume");
 
 	private final VisitService visits;
@@ -37,6 +38,7 @@ class VisitInterceptor implements HandlerInterceptor {
 		this.adminSession = adminSession;
 	}
 
+	/** 페이지 응답이 끝난 뒤 방문을 기록한다. 성공한 GET만, 운영자 본인(운영자 표시 쿠키·관리자 로그인)은 빼고. 기록이 실패해도 페이지에는 영향 없음 */
 	@Override
 	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler,
 			Exception ex) {

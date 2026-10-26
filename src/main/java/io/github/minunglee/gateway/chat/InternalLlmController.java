@@ -95,6 +95,7 @@ class InternalLlmController {
 				"demo".equals(result.mode()), result.inputTokens(), result.outputTokens(), result.remainingToday()));
 	}
 
+	/** 공유 토큰이 설정돼 있고 요청 토큰과 같은지 (상수 시간 비교) */
 	private boolean matches(String token) {
 		return jipdonToken.length > 0 && token != null
 				&& MessageDigest.isEqual(jipdonToken, token.getBytes(StandardCharsets.UTF_8));

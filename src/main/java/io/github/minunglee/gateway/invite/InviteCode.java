@@ -45,10 +45,12 @@ public class InviteCode {
 		this.createdAt = createdAt;
 	}
 
+	/** 폐기되지 않았고 만료 전인지 */
 	public boolean isActive(Instant now) {
 		return !revoked && now.isBefore(expiresAt);
 	}
 
+	/** 관리자 폐기. 기록은 남기고 상태만 바꾼다 */
 	public void revoke() {
 		this.revoked = true;
 	}

@@ -13,6 +13,7 @@ public class MockLlmClient implements LlmClient {
 		this.latency = latency;
 	}
 
+	/** 설정한 지연만큼 기다린 뒤 질문을 되돌려주는 가짜 답과 추정 토큰 수를 돌려준다 */
 	@Override
 	public LlmResponse complete(LlmRequest request) {
 		sleep();
@@ -21,6 +22,7 @@ public class MockLlmClient implements LlmClient {
 		return new LlmResponse(text, request.model(), estimateTokens(request.userMessage()), estimateTokens(text));
 	}
 
+	/** 로그와 화면에 표시할 동작 모드 */
 	@Override
 	public String mode() {
 		return "mock";
@@ -31,6 +33,7 @@ public class MockLlmClient implements LlmClient {
 		return Math.max(1, text.length() / 2);
 	}
 
+	/** AI 응답 지연을 흉내 낸다 (부하 테스트에서 가상 스레드 효과를 재려고) */
 	private void sleep() {
 		try {
 			Thread.sleep(latency);

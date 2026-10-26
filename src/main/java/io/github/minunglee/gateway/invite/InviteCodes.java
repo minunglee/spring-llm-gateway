@@ -15,15 +15,19 @@ import java.util.Locale;
  */
 final class InviteCodes {
 
+	/** 코드에 쓰는 31개 문자. 헷갈리기 쉬운 I·L·O·0·1은 뺐다 */
 	private static final char[] ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789".toCharArray();
 
+	/** 코드 길이 (하이픈 제외). 31^12 ≈ 8×10^17 가지 */
 	private static final int LENGTH = 12;
 
+	/** 예측할 수 없는 난수 (일반 Random은 다음 값을 추측할 수 있다) */
 	private static final SecureRandom RANDOM = new SecureRandom();
 
 	private InviteCodes() {
 	}
 
+	/** 새 코드를 만든다. 읽기 쉽게 4자리마다 하이픈: XXXX-XXXX-XXXX */
 	static String generate() {
 		StringBuilder code = new StringBuilder(LENGTH + 2);
 		for (int i = 0; i < LENGTH; i++) {
@@ -40,6 +44,7 @@ final class InviteCodes {
 		return input.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]", "");
 	}
 
+	/** 저장·조회용 SHA-256 해시. DB에는 원문 대신 이 값만 둔다 (입력 형식을 먼저 통일) */
 	static String hash(String input) {
 		try {
 			byte[] digest = MessageDigest.getInstance("SHA-256")

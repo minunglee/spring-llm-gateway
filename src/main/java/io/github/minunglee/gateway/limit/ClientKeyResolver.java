@@ -28,6 +28,7 @@ public class ClientKeyResolver {
 		this.key = new SecretKeySpec(properties.ipSalt().getBytes(StandardCharsets.UTF_8), "HmacSHA256");
 	}
 
+	/** 접속 IP를 비밀값으로 HMAC 해시한 32자 키 (원래 IP로 되돌릴 수 없음) */
 	public String resolve(HttpServletRequest request) {
 		try {
 			Mac mac = Mac.getInstance("HmacSHA256");

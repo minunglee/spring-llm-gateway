@@ -24,6 +24,7 @@ class AdminTokenFilter extends OncePerRequestFilter {
 		this.session = session;
 	}
 
+	/** 관리자 토큰이 없으면 404, 공개 입구·Bearer 토큰·로그인 쿠키 중 하나면 통과, 아니면 401 */
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
 			throws ServletException, IOException {
@@ -38,6 +39,7 @@ class AdminTokenFilter extends OncePerRequestFilter {
 		response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
 	}
 
+	/** 인증 없이 통과시키는 주소: 대시보드 첫 화면(로그인 화면을 보여줌), 로그인, 로그아웃 */
 	private boolean isPublicEntry(HttpServletRequest request) {
 		String path = request.getRequestURI();
 		return ("GET".equals(request.getMethod()) && ("/admin".equals(path) || "/admin/".equals(path)))
@@ -45,6 +47,7 @@ class AdminTokenFilter extends OncePerRequestFilter {
 						&& ("/admin/login".equals(path) || "/admin/logout".equals(path)));
 	}
 
+	/** Authorization: Bearer 관리자토큰 헤더가 있는지 (curl 등 스크립트용) */
 	private boolean hasBearerToken(HttpServletRequest request) {
 		String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 		return header != null && header.startsWith("Bearer ") && session.matchesToken(header.substring(7));

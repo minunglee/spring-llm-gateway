@@ -5,6 +5,7 @@ package io.github.minunglee.gateway.llm;
  */
 public record LlmRequest(String model, String userMessage, long maxTokens, String system) {
 
+	/** 시스템 프롬프트 없는 요청 (체험 화면) */
 	public LlmRequest(String model, String userMessage, long maxTokens) {
 		this(model, userMessage, maxTokens, null);
 	}

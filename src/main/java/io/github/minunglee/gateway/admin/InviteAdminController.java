@@ -35,6 +35,7 @@ class InviteAdminController {
 		this.inviteService = inviteService;
 	}
 
+	/** POST /admin/invites: 회사용 초대코드를 새로 만든다 */
 	@PostMapping
 	@ResponseStatus(HttpStatus.CREATED)
 	CreateResponse create(@Valid @RequestBody CreateRequest request) {
@@ -44,17 +45,24 @@ class InviteAdminController {
 				created.invite().getExpiresAt());
 	}
 
+	/** GET /admin/invites: 초대코드별 열람 현황 */
 	@GetMapping
 	List<InviteService.InviteSummary> list() {
 		return inviteService.summaries();
 	}
 
+	/** DELETE /admin/invites/{id}: 코드 폐기. 그 코드를 쓰던 사람은 다음 요청부터 게스트가 된다 */
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	void revoke(@PathVariable long id) {
 		inviteService.revoke(id);
 	}
 
+	/**
+	 * @param label 관리자만 보는 이름 (회사명 등)
+	 * @param validDays 유효 기간 1~180일
+	 * @param dailyLimit 이 코드의 하루 AI 질문 한도 1~1000회
+	 */
 	record CreateRequest(@NotBlank @Size(max = 100) String label, @Min(1) @Max(180) int validDays,
 			@Min(1) @Max(1000) int dailyLimit) {
 	}

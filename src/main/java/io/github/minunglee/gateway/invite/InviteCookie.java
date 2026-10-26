@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 @Component
 class InviteCookie {
 
+	/** 초대코드 쿠키 이름 */
 	static final String NAME = "invite";
 
 	private final SecretKeySpec key;
@@ -43,6 +44,7 @@ class InviteCookie {
 		this.clock = clock;
 	}
 
+	/** 쿠키 발급: 값은 "코드ID.만료시각.서명". 만료는 설정한 쿠키 기간과 코드 자체 만료 중 이른 쪽 */
 	ResponseCookie issue(InviteCode code, boolean secure) {
 		Instant now = clock.instant();
 		Instant expiresAt = now.plus(maxAge).isBefore(code.getExpiresAt()) ? now.plus(maxAge) : code.getExpiresAt();
@@ -50,6 +52,7 @@ class InviteCookie {
 		return base(payload + "." + sign(payload), secure).maxAge(Duration.between(now, expiresAt)).build();
 	}
 
+	/** 쿠키를 지운다 (만료 시간 0) */
 	ResponseCookie clear(boolean secure) {
 		return base("", secure).maxAge(0).build();
 	}
@@ -66,6 +69,7 @@ class InviteCookie {
 			.flatMap(cookie -> verify(cookie.getValue()));
 	}
 
+	/** 서명이 맞고 만료 전이면 코드 ID, 아니면 빈 값 (위조·만료·형식 오류 모두 무시) */
 	private Optional<Long> verify(String value) {
 		String[] parts = value.split("\\.");
 		if (parts.length != 3) {
@@ -87,11 +91,13 @@ class InviteCookie {
 		}
 	}
 
+	/** 쿠키 공통 속성 (사이트 전체, 스크립트 접근 금지, Lax) */
 	private ResponseCookie.ResponseCookieBuilder base(String value, boolean secure) {
 		// HttpOnly: 스크립트에서 읽을 수 없게 해 XSS로 탈취되는 것을 막는다
 		return ResponseCookie.from(NAME, value).path("/").httpOnly(true).secure(secure).sameSite("Lax");
 	}
 
+	/** HMAC-SHA256 서명 (URL에 안전한 Base64) */
 	private String sign(String payload) {
 		try {
 			Mac mac = Mac.getInstance("HmacSHA256");

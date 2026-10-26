@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 class ApiExceptionHandler {
 
+	/** 입력 검사 실패 → 400, 첫 번째 오류 메시지를 그대로 보여준다 */
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	ProblemDetail handleValidation(MethodArgumentNotValidException ex) {
 		String message = ex.getBindingResult()
@@ -39,6 +40,7 @@ class ApiExceptionHandler {
 		return response;
 	}
 
+	/** 사용량 초과 → 429 + Retry-After(초), 오늘 남은 횟수 */
 	@ExceptionHandler(RateLimitExceededException.class)
 	ResponseEntity<ProblemDetail> handleRateLimit(RateLimitExceededException ex) {
 		// 내림하면 클라이언트가 조금 일찍 재시도해서 다시 막히므로 올림한다
@@ -51,11 +53,13 @@ class ApiExceptionHandler {
 			.body(body);
 	}
 
+	/** 봇 확인 실패 → 403 */
 	@ExceptionHandler(BotCheckFailedException.class)
 	ProblemDetail handleBotCheck(BotCheckFailedException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
 	}
 
+	/** AI 호출 실패 → 502 (선차감한 예산은 ChatService가 이미 돌려줬다) */
 	@ExceptionHandler(LlmException.class)
 	ProblemDetail handleLlm(LlmException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_GATEWAY,

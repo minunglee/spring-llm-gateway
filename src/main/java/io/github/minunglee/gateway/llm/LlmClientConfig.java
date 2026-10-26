@@ -11,6 +11,7 @@ import org.springframework.util.StringUtils;
 @EnableConfigurationProperties(LlmProperties.class)
 class LlmClientConfig {
 
+	/** 설정(gateway.llm.mode)에 따라 가짜 응답 또는 실제 Claude 클라이언트를 만든다. 실제 모드인데 API 키가 없으면 시작을 막는다 */
 	@Bean
 	LlmClient llmClient(LlmProperties properties) {
 		if (properties.mode() == LlmProperties.Mode.MOCK) {

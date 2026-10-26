@@ -59,6 +59,7 @@ public class RequestLog {
 	protected RequestLog() {
 	}
 
+	/** 요청 1건 기록. 등급과 초대코드 ID는 요청자에서 가져온다 */
 	public RequestLog(Requester requester, String mode, String model, Status status, long inputTokens,
 			long outputTokens, long costMicroUsd, long latencyMs, Instant createdAt) {
 		this.tier = requester.tier();

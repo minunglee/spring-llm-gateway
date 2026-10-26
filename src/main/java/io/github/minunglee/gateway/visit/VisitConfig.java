@@ -13,6 +13,7 @@ class VisitConfig implements WebMvcConfigurer {
 		this.visitInterceptor = visitInterceptor;
 	}
 
+	/** 방문 기록 인터셉터를 포트폴리오 페이지 주소에만 건다 */
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(visitInterceptor).addPathPatterns(VisitInterceptor.PAGES.toArray(String[]::new));

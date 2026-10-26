@@ -29,6 +29,7 @@ class ResumeStore {
 		this.jsonMapper = jsonMapper;
 	}
 
+	/** 비공개 폴더의 resume.json을 읽는다 (요청마다 읽어 서버에서 파일만 바꾸면 바로 반영) */
 	Optional<Resume> resume() {
 		Path file = dir.resolve("resume.json");
 		if (!Files.isReadable(file)) {
@@ -37,6 +38,7 @@ class ResumeStore {
 		return Optional.of(jsonMapper.readValue(file.toFile(), Resume.class));
 	}
 
+	/** 비공개 폴더의 resume.pdf 경로 (없으면 빈 값) */
 	Optional<Path> pdf() {
 		Path file = dir.resolve("resume.pdf");
 		return Files.isReadable(file) ? Optional.of(file) : Optional.empty();

@@ -19,8 +19,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class RateLimiter {
 
+	/** 토큰 버킷이 빈 상태에서 가득 차기까지 걸리는 시간. 시간당 한도를 1시간에 걸쳐 조금씩 채운다 */
 	private static final Duration REFILL_PERIOD = Duration.ofHours(1);
 
+	/** 날짜별 하루 카운터 키 보관 기간 (이틀 뒤 자동 삭제) */
 	private static final Duration DAILY_KEY_TTL = Duration.ofDays(2);
 
 	@SuppressWarnings("rawtypes")
@@ -58,6 +60,7 @@ public class RateLimiter {
 		return new RateLimitResult(allowed, result.get(1).intValue(), result.get(2).intValue(), retryAfter);
 	}
 
+	/** 하루 한도를 다 썼을 때 다시 쓸 수 있는 시각(내일 0시, 한국 시간)까지 남은 시간 */
 	private Duration untilTomorrow(LocalDate today) {
 		return Duration.between(clock.instant(), today.plusDays(1).atStartOfDay(properties.zone()).toInstant());
 	}

@@ -29,6 +29,7 @@ class AdminPageController {
 	/** 관리자 토큰 무작위 대입 방지 */
 	private static final int LOGIN_HOURLY = 5;
 
+	/** 같은 IP의 하루 로그인 시도 한도 (시간당 5회와 함께 무작위 대입을 막는다) */
 	private static final int LOGIN_DAILY = 20;
 
 	private final AdminSession session;
@@ -57,6 +58,11 @@ class AdminPageController {
 		this.clientKeyResolver = clientKeyResolver;
 	}
 
+	/**
+	 * GET /admin: 로그인돼 있으면 대시보드, 아니면 로그인 화면
+	 *
+	 * @param range 사용량 표 기간 (7, 30, all)
+	 */
 	@GetMapping({ "/admin", "/admin/" })
 	String dashboard(Model model, HttpServletRequest request, @RequestParam(required = false) String error,
 			@RequestParam(defaultValue = "7") String range) {
@@ -102,6 +108,7 @@ class AdminPageController {
 		return "admin-access";
 	}
 
+	/** POST /admin/login: 시도 횟수를 먼저 제한하고, 토큰이 맞으면 관리자 쿠키(12시간)와 운영자 표시 쿠키(방문 통계 제외용)를 심는다 */
 	@PostMapping("/admin/login")
 	String login(@RequestParam String token, HttpServletRequest request, HttpServletResponse response) {
 		boolean allowed = rateLimiter
@@ -119,6 +126,7 @@ class AdminPageController {
 		return "redirect:/admin";
 	}
 
+	/** POST /admin/logout: 관리자 쿠키만 지운다 (운영자 표시 쿠키는 남겨 이 브라우저는 계속 통계에서 빠진다) */
 	@PostMapping("/admin/logout")
 	String logout(HttpServletRequest request, HttpServletResponse response) {
 		response.addHeader(HttpHeaders.SET_COOKIE, session.clear(request.isSecure()).toString());

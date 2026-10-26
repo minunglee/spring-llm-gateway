@@ -22,6 +22,7 @@ public class CostCalculator {
 		this.pricing = pricing;
 	}
 
+	/** 토큰 수 × 모델 단가 = 비용(마이크로달러). 단가가 없는 모델이면 오류 */
 	public long costMicroUsd(String model, long inputTokens, long outputTokens) {
 		PricingProperties.ModelPrice price = pricing.models().get(model);
 		if (price == null) {
@@ -34,6 +35,7 @@ public class CostCalculator {
 		return cost.setScale(0, RoundingMode.CEILING).longValueExact();
 	}
 
+	/** 마이크로달러를 "$0.000123" 형태로 (불필요한 0은 뺀다) */
 	public static String formatUsd(long microUsd) {
 		return "$" + BigDecimal.valueOf(microUsd, 6).stripTrailingZeros().toPlainString();
 	}

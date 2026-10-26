@@ -19,9 +19,19 @@ public record JipdonCollectStatus(boolean enabled, boolean keyConfigured, String
 	/** 수집은 6시간마다 돈다. 하루 넘게 새 기록이 없으면 멈춘 것으로 본다 */
 	static final Duration STALE_AFTER = Duration.ofHours(24);
 
+	/** 화면용 시각 형식 (한국 시간) */
 	private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("M/d HH:mm")
 		.withZone(ZoneId.of("Asia/Seoul"));
 
+	/**
+	 * 수집 실행 한 번
+	 *
+	 * @param tasks 끝낸 일(지역·종류·월) 수
+	 * @param calls 공공 API 호출 수
+	 * @param changedRows 새로 들어오거나 바뀐 거래 수
+	 * @param stoppedByQuota 하루 호출 한도에 닿아 멈췄는지
+	 * @param remainingTasks 다음 실행으로 넘긴 일 수
+	 */
 	public record Run(Instant startedAt, Instant finishedAt, int tasks, int calls, int changedRows, int failedTasks,
 			boolean stoppedByQuota, int remainingTasks) {
 
@@ -52,6 +62,7 @@ public record JipdonCollectStatus(boolean enabled, boolean keyConfigured, String
 
 	}
 
+	/** 관리자 화면 상태 판정: 수집 꺼짐 → 인증키 없음 → 24시간 넘게 새 수집 없음(멈춤 의심) → 정상 순으로 본다 */
 	public Health health(Instant now) {
 		if (!enabled) {
 			return Health.DISABLED;
@@ -63,6 +74,7 @@ public record JipdonCollectStatus(boolean enabled, boolean keyConfigured, String
 				: Health.OK;
 	}
 
+	/** 마지막 수집 시각 (없으면 "-") */
 	public String lastCollectedText() {
 		return lastCollectedAt == null ? "-" : TIME.format(lastCollectedAt);
 	}
