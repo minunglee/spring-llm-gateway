@@ -80,7 +80,7 @@ public class InviteService {
 			return new InviteSummary(code.getId(), code.getLabel(), code.getDailyLimit(), code.getExpiresAt(),
 					code.isRevoked(), counts.getOrDefault(InviteAccessLog.Action.REDEEM, 0L),
 					counts.getOrDefault(InviteAccessLog.Action.RESUME_VIEW, 0L),
-					counts.getOrDefault(InviteAccessLog.Action.RESUME_PDF, 0L), lastAccess);
+					counts.getOrDefault(InviteAccessLog.Action.RESUME_PDF, 0L), lastAccess, code.getCreatedAt());
 		}).sorted((a, b) -> Long.compare(b.id(), a.id())).toList();
 	}
 
@@ -88,9 +88,9 @@ public class InviteService {
 	public record CreatedInvite(InviteCode invite, String code) {
 	}
 
-	/** 관리자 화면용 코드별 요약: 코드 입력·이력서 열람·PDF 다운로드 횟수와 마지막 접근 시각 */
+	/** 관리자 화면용 코드별 요약: 코드 입력·이력서 열람·PDF 다운로드 횟수, 마지막 접근 시각, 발급 시각 */
 	public record InviteSummary(long id, String label, int dailyLimit, Instant expiresAt, boolean revoked,
-			long redeemCount, long resumeViews, long resumePdfDownloads, Instant lastAccessAt) {
+			long redeemCount, long resumeViews, long resumePdfDownloads, Instant lastAccessAt, Instant createdAt) {
 	}
 
 }

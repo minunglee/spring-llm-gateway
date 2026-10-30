@@ -193,6 +193,48 @@ class AdminDashboardIntegrationTest {
 	}
 
 	@Test
+	void 초대코드는_이름으로_검색하고_접속한_코드만_거른다() throws Exception {
+		Cookie admin = adminCookie();
+		long visited = createInvite(admin, "방문L사");
+		createInvite(admin, "방문M사");
+		createInvite(admin, "다른N사");
+		inviteService.log(visited, InviteAccessLog.Action.REDEEM);
+
+		mockMvc.perform(get("/admin").param("q", "방문").cookie(admin))
+			.andExpect(content().string(containsString("방문L사")))
+			.andExpect(content().string(containsString("방문M사")))
+			.andExpect(content().string(not(containsString("다른N사"))))
+			.andExpect(content().string(containsString("중 2개")));
+		mockMvc.perform(get("/admin").param("q", "방문").param("visited", "true").cookie(admin))
+			.andExpect(content().string(containsString("방문L사")))
+			.andExpect(content().string(not(containsString("방문M사"))));
+		mockMvc.perform(get("/admin").param("q", "없는회사").cookie(admin))
+			.andExpect(content().string(containsString("조건에 맞는 코드가 없습니다.")));
+	}
+
+	@Test
+	void 초대코드_표는_20개씩_최근_발급순으로_나눈다() throws Exception {
+		Cookie admin = adminCookie();
+		for (int i = 0; i < 21; i++) {
+			createInvite(admin, "페이지Z-%02d".formatted(i));
+		}
+		String today = LocalDate.now(ZoneId.of("Asia/Seoul")).toString();
+
+		mockMvc.perform(get("/admin").param("q", "페이지Z").cookie(admin))
+			.andExpect(content().string(containsString("1 / 2")))
+			.andExpect(content().string(containsString("페이지Z-20")))
+			.andExpect(content().string(not(containsString("페이지Z-00"))))
+			.andExpect(content().string(containsString("<th>발급</th>")))
+			.andExpect(content().string(containsString(today + " ")));
+		mockMvc.perform(get("/admin").param("q", "페이지Z").param("invitePage", "2").cookie(admin))
+			.andExpect(content().string(containsString("2 / 2")))
+			.andExpect(content().string(containsString("페이지Z-00")));
+		// 범위를 넘는 페이지는 마지막 페이지로
+		mockMvc.perform(get("/admin").param("q", "페이지Z").param("invitePage", "99").cookie(admin))
+			.andExpect(content().string(containsString("2 / 2")));
+	}
+
+	@Test
 	void 상세와_전체_기록도_로그인해야_볼_수_있다() throws Exception {
 		mockMvc.perform(get("/admin/codes/1")).andExpect(status().isUnauthorized());
 		mockMvc.perform(get("/admin/access")).andExpect(status().isUnauthorized());

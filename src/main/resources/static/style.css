@@ -1408,7 +1408,8 @@ a.link-button {
 	font-weight: 400;
 }
 
-.filter select {
+.filter select,
+.filter input[type="search"] {
 	min-width: 160px;
 	padding: 8px 10px;
 	background: var(--bg);
@@ -1416,6 +1417,19 @@ a.link-button {
 	border: 1px solid var(--border);
 	border-radius: 8px;
 	font: inherit;
+}
+
+/* 체크박스는 다른 칸과 달리 글자 옆에 붙인다 */
+.filter label.check {
+	flex-direction: row;
+	align-items: center;
+	padding-bottom: 9px;
+	color: var(--text);
+	font-size: 0.9rem;
+}
+
+.list-count {
+	margin: 0 0 8px;
 }
 
 .pager {
