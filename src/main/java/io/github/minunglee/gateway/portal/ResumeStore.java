@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.stereotype.Component;
 
 /**
- * 비공개 폴더에서 이력서 내용(resume.json)과 PDF(resume.pdf)를 읽는다.
+ * 비공개 폴더에서 이력서 내용(resume.json), PDF(resume.pdf), 증명사진(photo.jpg)을 읽는다.
  * <p>
  * 공개 저장소에 개인정보를 올리지 않기 위해 파일은 서버에만 두고 컨테이너에 읽기 전용으로 마운트한다.
  * 요청마다 파일을 읽으므로 서버의 파일만 바꾸면 재배포 없이 내용이 갱신된다.
@@ -44,8 +44,14 @@ class ResumeStore {
 		return Files.isReadable(file) ? Optional.of(file) : Optional.empty();
 	}
 
+	/** 비공개 폴더의 증명사진 photo.jpg 경로 (없으면 빈 값) */
+	Optional<Path> photo() {
+		Path file = dir.resolve("photo.jpg");
+		return Files.isReadable(file) ? Optional.of(file) : Optional.empty();
+	}
+
 	/**
-	 * @param dir 비공개 폴더 경로 (resume.json, resume.pdf)
+	 * @param dir 비공개 폴더 경로 (resume.json, resume.pdf, photo.jpg)
 	 */
 	@ConfigurationProperties("gateway.resume")
 	record Properties(String dir) {

@@ -1060,6 +1060,27 @@ a.tile:hover {
 	padding: 24px 24px;
 }
 
+/* 증명사진(3:4) + 이름·한 줄 소개 */
+.profile-top {
+	display: flex;
+	gap: 20px;
+	align-items: flex-start;
+	margin-bottom: 20px;
+}
+
+.profile-photo {
+	flex: none;
+	width: 96px;
+	height: 128px;
+	object-fit: cover;
+	border: 1px solid var(--border);
+	border-radius: 6px;
+}
+
+.profile-top .resume-headline {
+	margin-bottom: 0;
+}
+
 .profile-name {
 	margin: 0;
 	font-size: 1.6rem;

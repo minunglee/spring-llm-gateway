@@ -142,6 +142,10 @@ class InviteIntegrationTest {
 			.andExpect(status().isOk())
 			.andExpect(header().string("Content-Type", "application/pdf"))
 			.andExpect(header().string("Cache-Control", "no-store"));
+		mockMvc.perform(get("/resume/photo").cookie(invite))
+			.andExpect(status().isOk())
+			.andExpect(header().string("Content-Type", "image/jpeg"))
+			.andExpect(header().string("Cache-Control", "no-store"));
 
 		mockMvc.perform(get("/admin/invites").header("Authorization", ADMIN))
 			.andExpect(jsonPath("$[0].label").value("F사"))
@@ -151,10 +155,10 @@ class InviteIntegrationTest {
 	}
 
 	@Test
-	void 초대코드_없이는_PDF를_받을_수_없다() throws Exception {
+	void 초대코드_없이는_PDF와_사진을_받을_수_없다() throws Exception {
 		mockMvc.perform(get("/resume/pdf"))
 			.andExpect(status().isSeeOther())
-			.andExpect(header().string("Location", "/resume"));
+			.andExpect(header().string("Location", "/resume"));		mockMvc.perform(get("/resume/photo")).andExpect(status().isNotFound());
 	}
 
 	@Test
