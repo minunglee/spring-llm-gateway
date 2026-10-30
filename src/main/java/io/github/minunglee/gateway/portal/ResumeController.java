@@ -48,6 +48,7 @@ class ResumeController {
 		inviteService.log(requester.inviteCodeId(), InviteAccessLog.Action.RESUME_VIEW);
 		model.addAttribute("resume", resumeStore.resume().orElse(null));
 		model.addAttribute("hasPdf", resumeStore.pdf().isPresent());
+		model.addAttribute("hasPhoto", resumeStore.photo().isPresent());
 		return "resume";
 	}
 
@@ -70,6 +71,20 @@ class ResumeController {
 				.header(HttpHeaders.CACHE_CONTROL, "no-store")
 				.body(new FileSystemResource(file));
 		}).orElseGet(() -> ResponseEntity.notFound().build());
+	}
+
+	/** GET /resume/photo: 초대코드가 있으면 증명사진을 내려주고, 없으면 404 (열람 기록은 /resume 에서 이미 남김) */
+	@GetMapping("/resume/photo")
+	ResponseEntity<Resource> photo(HttpServletRequest request) {
+		if (!requesterResolver.resolve(request).invited()) {
+			return ResponseEntity.notFound().build();
+		}
+		return resumeStore.photo()
+			.<ResponseEntity<Resource>>map(file -> ResponseEntity.ok()
+				.contentType(MediaType.IMAGE_JPEG)
+				.header(HttpHeaders.CACHE_CONTROL, "no-store")
+				.body(new FileSystemResource(file)))
+			.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 }

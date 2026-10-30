@@ -27,8 +27,13 @@
 				<a th:if="${hasPdf}" class="button small" th:href="@{/resume/pdf}">PDF 다운로드</a>
 			</div>
 			<div class="card block-body">
-				<p class="profile-name" th:text="${resume.name()}">이름</p>
-				<p class="resume-headline" th:text="${resume.headline()}">한 줄 소개</p>
+				<div class="profile-top">
+					<img th:if="${hasPhoto}" class="profile-photo" th:src="@{/resume/photo}" alt="증명사진">
+					<div>
+						<p class="profile-name" th:text="${resume.name()}">이름</p>
+						<p class="resume-headline" th:text="${resume.headline()}">한 줄 소개</p>
+					</div>
+				</div>
 				<dl class="info-list">
 					<dt>이메일</dt>
 					<dd><a th:href="|mailto:${resume.contact().email()}|" th:text="${resume.contact().email()}">이메일</a></dd>
