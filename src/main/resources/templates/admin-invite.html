@@ -23,6 +23,8 @@
 		</div>
 		<div class="card block-body">
 			<dl class="info-list">
+				<dt>발급</dt>
+				<dd th:text="${i.createdAt()}">발급</dd>
 				<dt>만료</dt>
 				<dd th:text="${i.expiresAt()}">만료</dd>
 				<dt>하루 AI 한도</dt>

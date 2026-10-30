@@ -160,7 +160,7 @@
 	</section>
 
 	<!-- 초대코드 -->
-	<section class="admin-section">
+	<section class="admin-section" id="invites">
 		<div class="block-title">
 			<span class="fold-head">
 				<span class="fold-label">INVITES</span>
@@ -177,16 +177,32 @@
 			<p class="hint">유효 일수 기본 30일, 하루 100회. 발급된 코드는 이 화면에서 한 번만 보입니다.</p>
 			<p id="invite-created" class="created" hidden></p>
 		</form>
+		<!-- 검색·필터는 GET으로 다시 그린다 (기간 선택은 유지) -->
+		<form class="card block-body filter" method="get" th:action="@{/admin#invites}" th:with="l=${d.invites()}">
+			<input type="hidden" name="range" th:value="${d.range().param()}">
+			<label>이름 검색
+				<input type="search" name="q" th:value="${l.query()}" placeholder="회사명" maxlength="100">
+			</label>
+			<label class="check">
+				<input type="checkbox" name="visited" value="true" th:checked="${l.visitedOnly()}"> 접속한 코드만
+			</label>
+			<button type="submit">보기</button>
+			<a th:if="${l.filtered()}" class="link-button" th:href="@{/admin(range=${d.range().param()})} + '#invites'">조건 지우기</a>
+		</form>
+		<div id="invite-list" th:with="l=${d.invites()}">
 		<div class="card block-body table-wrap">
+			<p class="hint list-count" th:text="${l.filtered()} ? |전체 ${l.total()}개 중 ${l.matched()}개| : |전체 ${l.total()}개|">전체 0개</p>
 			<table class="admin-table">
 				<thead>
-				<tr><th>이름</th><th>상태</th><th>만료</th><th>입력</th><th>이력서</th><th>PDF</th><th>AI 사용</th><th>마지막 접속</th><th></th></tr>
+				<tr><th>이름</th><th>상태</th><th>발급</th><th>만료</th><th>입력</th><th>이력서</th><th>PDF</th><th>AI 사용</th><th>마지막 접속</th><th></th></tr>
 				</thead>
-				<tbody id="invite-rows">
-				<tr th:if="${d.invites().isEmpty()}"><td colspan="9" class="muted">아직 발급한 코드가 없습니다.</td></tr>
-				<tr th:each="i : ${d.invites()}" th:classappend="${i.revoked()} ? 'dim'">
+				<tbody>
+				<tr th:if="${l.rows().isEmpty()}"><td colspan="10" class="muted"
+						th:text="${l.filtered()} ? '조건에 맞는 코드가 없습니다.' : '아직 발급한 코드가 없습니다.'">없음</td></tr>
+				<tr th:each="i : ${l.rows()}" th:classappend="${i.revoked()} ? 'dim'">
 					<td><a class="table-link" th:href="@{/admin/codes/{id}(id=${i.id()})}" th:text="${i.label()}">이름</a></td>
 					<td th:text="${i.status()}">상태</td>
+					<td th:text="${i.createdAt()}">발급</td>
 					<td th:text="${i.expiresAt()}">만료</td>
 					<td class="num" th:text="${i.redeems()}">0</td>
 					<td class="num" th:text="${i.resumeViews()}">0</td>
@@ -198,6 +214,14 @@
 				</tr>
 				</tbody>
 			</table>
+		</div>
+		<nav class="pager" aria-label="초대코드 페이지" th:if="${l.totalPages() > 1}">
+			<a th:if="${l.hasPrevious()}" class="link-button"
+			   th:href="@{/admin(range=${d.range().param()},q=${l.query()},visited=${l.visitedOnly()},invitePage=${l.page() - 1})} + '#invites'">← 이전</a>
+			<span th:text="|${l.page()} / ${l.totalPages()}|">1 / 1</span>
+			<a th:if="${l.hasNext()}" class="link-button"
+			   th:href="@{/admin(range=${d.range().param()},q=${l.query()},visited=${l.visitedOnly()},invitePage=${l.page() + 1})} + '#invites'">다음 →</a>
+		</nav>
 		</div>
 	</section>
 

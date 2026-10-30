@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,6 +35,9 @@ class AdminDashboardService {
 
 	/** "열람 기록 전체" 화면의 한 페이지 줄 수 */
 	static final int PAGE_SIZE = 50;
+
+	/** 대시보드 초대코드 표의 한 페이지 줄 수 */
+	static final int INVITE_PAGE_SIZE = 20;
 
 	/** 화면에 보여줄 시각 형식 (한국 시간으로 바꾼 뒤 적용) */
 	private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -82,9 +86,25 @@ class AdminDashboardService {
 	}
 
 	/** 관리자 첫 화면 데이터: AI 모드, 긴급 차단, 등급별 예산(게스트·초대코드·집돈), 기간별 사용량, 초대코드 현황, 최근 이벤트 */
-	Dashboard dashboard(UsageRange range) {
+	Dashboard dashboard(UsageRange range, InviteFilter filter) {
 		return new Dashboard(llmClient.mode(), killSwitch.isOn(), List.of(budget(Tier.GUEST), budget(Tier.INVITE), budget(Tier.JIPDON)),
-				range, dailyStats(range), invites(), events(null, null, 30, 0));
+				range, dailyStats(range), inviteList(filter), events(null, null, 30, 0));
+	}
+
+	/** 초대코드 표 한 페이지 (이름 검색, 접속한 코드만 보기). 코드는 지원한 회사 수만큼이라 메모리에서 거른다 */
+	private InviteList inviteList(InviteFilter filter) {
+		List<InviteRow> all = invites();
+		String query = filter.query() == null ? "" : filter.query().strip().toLowerCase(Locale.ROOT);
+		List<InviteRow> matched = all.stream()
+			.filter(row -> query.isEmpty() || row.label().toLowerCase(Locale.ROOT).contains(query))
+			.filter(row -> !filter.visitedOnly() || row.visited())
+			.toList();
+		int totalPages = Math.max(1, (matched.size() + INVITE_PAGE_SIZE - 1) / INVITE_PAGE_SIZE);
+		int page = Math.clamp(filter.page(), 1, totalPages);
+		int from = (page - 1) * INVITE_PAGE_SIZE;
+		List<InviteRow> rows = matched.subList(from, Math.min(from + INVITE_PAGE_SIZE, matched.size()));
+		return new InviteList(rows, page, totalPages, matched.size(), all.size(), filter.query() == null ? "" : filter.query().strip(),
+				filter.visitedOnly());
 	}
 
 	/** 회사(초대코드)별 상세: 요약, 날짜별 집계, 전체 기록 */
@@ -202,7 +222,7 @@ class AdminDashboardService {
 			.map(timestamp -> timestamp.toInstant().atZone(zone).toLocalDate());
 	}
 
-	/** 초대코드별 현황 표: 상태, 만료일, 코드 입력·이력서 열람·PDF·AI 질문 횟수, 마지막 접근 시각 */
+	/** 초대코드별 현황 표 (최근 발급순): 상태, 발급·만료 시각, 코드 입력·이력서 열람·PDF·AI 질문 횟수, 마지막 접근 시각 */
 	private List<InviteRow> invites() {
 		Map<Long, Long> chats = jdbc
 			.sql("SELECT invite_code_id, COUNT(*) AS c FROM request_log WHERE invite_code_id IS NOT NULL GROUP BY 1")
@@ -213,7 +233,7 @@ class AdminDashboardService {
 		Instant now = clock.instant();
 		return inviteService.summaries()
 			.stream()
-			.map(s -> new InviteRow(s.id(), s.label(), status(s, now), format(s.expiresAt()), s.dailyLimit(),
+			.map(s -> new InviteRow(s.id(), s.label(), status(s, now), format(s.createdAt()), format(s.expiresAt()), s.dailyLimit(),
 					s.redeemCount(), s.resumeViews(), s.resumePdfDownloads(), chats.getOrDefault(s.id(), 0L),
 					s.lastAccessAt() == null ? "-" : format(s.lastAccessAt()), s.revoked()))
 			.toList();
@@ -295,7 +315,7 @@ class AdminDashboardService {
 	 * @param recentEvents 최근 열람·AI 질문 이벤트
 	 */
 	record Dashboard(String llmMode, boolean killSwitch, List<Budget> budgets, UsageRange range,
-			List<DailyStat> daily, List<InviteRow> invites, List<Event> recentEvents) {
+			List<DailyStat> daily, InviteList invites, List<Event> recentEvents) {
 
 		public List<UsageRange> ranges() {
 			return List.of(UsageRange.values());
@@ -319,8 +339,45 @@ class AdminDashboardService {
 	}
 
 	/** 초대코드 현황 표의 한 줄 (label은 회사명 등 관리자만 보는 이름) */
-	record InviteRow(long id, String label, String status, String expiresAt, int dailyLimit, long redeems,
-			long resumeViews, long pdfDownloads, long llmRequests, String lastAccess, boolean revoked) {
+	record InviteRow(long id, String label, String status, String createdAt, String expiresAt, int dailyLimit,
+			long redeems, long resumeViews, long pdfDownloads, long llmRequests, String lastAccess, boolean revoked) {
+
+		/** 코드 입력·이력서 열람·PDF 중 하나라도 있으면 접속한 코드 (AI 질문은 코드 입력 뒤에만 가능) */
+		public boolean visited() {
+			return redeems + resumeViews + pdfDownloads > 0;
+		}
+
+	}
+
+	/**
+	 * 초대코드 표 조건
+	 *
+	 * @param query 이름 검색어 (대소문자 무시, 부분 일치)
+	 * @param visitedOnly 접속한 코드만 보기
+	 */
+	record InviteFilter(String query, boolean visitedOnly, int page) {
+	}
+
+	/**
+	 * 초대코드 표 한 페이지와 조건
+	 *
+	 * @param matched 조건에 맞는 코드 수, total 전체 코드 수
+	 */
+	record InviteList(List<InviteRow> rows, int page, int totalPages, int matched, int total, String query,
+			boolean visitedOnly) {
+
+		public boolean hasPrevious() {
+			return page > 1;
+		}
+
+		public boolean hasNext() {
+			return page < totalPages;
+		}
+
+		public boolean filtered() {
+			return !query.isEmpty() || visitedOnly;
+		}
+
 	}
 
 	/** 회사별 상세 화면의 날짜별 집계 */

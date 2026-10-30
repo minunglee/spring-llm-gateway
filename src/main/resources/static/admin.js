@@ -33,17 +33,17 @@ document.getElementById('invite-create')?.addEventListener('submit', async (even
 (이 화면을 벗어나면 다시 볼 수 없습니다)`;
 	output.hidden = false;
 	document.getElementById('invite-label').value = '';
-	// 발급한 코드는 이 화면에서만 보이므로 새로고침 대신 목록 표만 다시 받아 바꾼다
-	await refreshInviteRows();
+	// 발급한 코드는 이 화면에서만 보이므로 새로고침 대신 목록(표·페이지)만 다시 받아 바꾼다
+	await refreshInviteList();
 });
 
-async function refreshInviteRows() {
+async function refreshInviteList() {
 	const response = await fetch(location.href, { headers: { Accept: 'text/html' } });
 	if (!response.ok) return;
 	const page = new DOMParser().parseFromString(await response.text(), 'text/html');
-	const fresh = page.getElementById('invite-rows');
+	const fresh = page.getElementById('invite-list');
 	if (fresh) {
-		document.getElementById('invite-rows').replaceWith(fresh);
+		document.getElementById('invite-list').replaceWith(fresh);
 	}
 }
 

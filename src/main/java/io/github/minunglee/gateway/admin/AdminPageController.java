@@ -62,16 +62,21 @@ class AdminPageController {
 	 * GET /admin: 로그인돼 있으면 대시보드, 아니면 로그인 화면
 	 *
 	 * @param range 사용량 표 기간 (7, 30, all)
+	 * @param q 초대코드 이름 검색어
+	 * @param visited 접속한 초대코드만 보기
+	 * @param invitePage 초대코드 표 페이지
 	 */
 	@GetMapping({ "/admin", "/admin/" })
 	String dashboard(Model model, HttpServletRequest request, @RequestParam(required = false) String error,
-			@RequestParam(defaultValue = "7") String range) {
+			@RequestParam(defaultValue = "7") String range, @RequestParam(required = false) String q,
+			@RequestParam(defaultValue = "false") boolean visited, @RequestParam(defaultValue = "1") int invitePage) {
 		if (!session.isLoggedIn(request)) {
 			model.addAttribute("error", error);
 			return "admin-login";
 		}
 		model.addAttribute("dashboard",
-				dashboardService.dashboard(AdminDashboardService.UsageRange.of(range)));
+				dashboardService.dashboard(AdminDashboardService.UsageRange.of(range),
+						new AdminDashboardService.InviteFilter(q, visited, invitePage)));
 		model.addAttribute("cloudVisits", visitService.stats(30));
 		model.addAttribute("jipdonVisits", jipdonStats.fetch(30).orElse(null));
 		jipdonStats.fetchCollect().ifPresent(collect -> {
