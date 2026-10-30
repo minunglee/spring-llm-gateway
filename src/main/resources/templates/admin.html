@@ -182,7 +182,7 @@
 				<thead>
 				<tr><th>이름</th><th>상태</th><th>만료</th><th>입력</th><th>이력서</th><th>PDF</th><th>AI 사용</th><th>마지막 접속</th><th></th></tr>
 				</thead>
-				<tbody>
+				<tbody id="invite-rows">
 				<tr th:if="${d.invites().isEmpty()}"><td colspan="9" class="muted">아직 발급한 코드가 없습니다.</td></tr>
 				<tr th:each="i : ${d.invites()}" th:classappend="${i.revoked()} ? 'dim'">
 					<td><a class="table-link" th:href="@{/admin/codes/{id}(id=${i.id()})}" th:text="${i.label()}">이름</a></td>
