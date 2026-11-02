@@ -201,6 +201,29 @@ class InviteIntegrationTest {
 	}
 
 	@Test
+	void 메신저_미리보기_봇이_연_초대_링크는_기록하지_않는다() throws Exception {
+		String code = createInvite("P사", 100);
+		long before = accessLogRepository.count();
+
+		mockMvc.perform(get("/i/" + code).header("User-Agent",
+				"facebookexternalhit/1.1; kakaotalk-scrap/1.0; +https://devtalk.kakao.com/t/scrap/33984"))
+			.andExpect(status().isSeeOther())
+			.andExpect(header().string("Location", "/"))
+			.andExpect(cookie().doesNotExist("invite"));
+		assertThat(accessLogRepository.count()).isEqualTo(before);
+
+		// 카카오톡 인앱 브라우저로 연 사람은 그대로 기록한다
+		mockMvc.perform(get("/i/" + code).header("User-Agent",
+				"Mozilla/5.0 (Linux; Android 14; SM-S918N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Mobile Safari/537.36 KAKAOTALK/26.1.0")
+			.with(r -> {
+				r.setRemoteAddr("10.1.0.21");
+				return r;
+			}))
+			.andExpect(cookie().exists("invite"));
+		assertThat(accessLogRepository.count()).isEqualTo(before + 1);
+	}
+
+	@Test
 	void 틀린_초대_링크는_메인에서_안내만_한다() throws Exception {
 		mockMvc.perform(get("/i/WRONG-CODE"))
 			.andExpect(status().isSeeOther())

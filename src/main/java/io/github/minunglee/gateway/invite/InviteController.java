@@ -70,9 +70,13 @@ class InviteController {
 	/**
 	 * 초대 링크 (https://minunglee.cloud/i/코드). 취업 사이트의 포트폴리오 URL 칸 하나로 초대코드까지 전달하려고 둔다.
 	 * 열면 코드를 적용하고 포트폴리오 메인으로 보낸다. 코드가 틀리거나 만료됐으면 메인에서 안내만 보인다.
+	 * 메신저 미리보기 봇은 코드를 확인하지도 기록하지도 않고 메인으로만 보낸다 (사람이 연 것으로 잘못 찍히지 않게).
 	 */
 	@GetMapping("/i/{code}")
 	ResponseEntity<Void> redeemLink(@PathVariable String code, HttpServletRequest servletRequest) {
+		if (LinkPreviewBots.matches(servletRequest.getHeader(HttpHeaders.USER_AGENT))) {
+			return redirect("/", null);
+		}
 		RateLimitResult limit = rateLimiter.tryAcquire("redeem:" + clientKeyResolver.resolve(servletRequest),
 				REDEEM_HOURLY, REDEEM_DAILY);
 		if (!limit.allowed() || code.length() > 40) {

@@ -1324,6 +1324,71 @@ a.tile:hover {
 	margin: 0;
 }
 
+/* 초대코드 표: 가로 스크롤 없이 들어가게 이름만 줄바꿈 */
+.invite-table {
+	font-size: 0.85rem;
+}
+
+.invite-table th,
+.invite-table td {
+	padding-left: 6px;
+	padding-right: 6px;
+}
+
+.invite-table .name {
+	white-space: normal;
+	word-break: keep-all;
+	overflow-wrap: anywhere;
+	min-width: 120px;
+}
+
+/* 좁은 화면에서는 줄마다 카드처럼 쌓는다 (이름 → 항목: 값) */
+@media (max-width: 720px) {
+	.invite-table thead {
+		display: none;
+	}
+
+	.invite-table,
+	.invite-table tbody,
+	.invite-table tr,
+	.invite-table td {
+		display: block;
+		width: 100%;
+	}
+
+	.invite-table tr {
+		padding: 10px 0;
+		border-bottom: 1px solid var(--border);
+	}
+
+	.invite-table tr:last-child {
+		border-bottom: 0;
+	}
+
+	.invite-table td {
+		display: flex;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 2px 0;
+		border-bottom: 0;
+		text-align: right;
+	}
+
+	.invite-table td[data-label]::before {
+		content: attr(data-label);
+		color: var(--muted);
+	}
+
+	.invite-table .name {
+		font-weight: 600;
+		padding-bottom: 6px;
+	}
+
+	.invite-table .actions:empty {
+		display: none;
+	}
+}
+
 .admin-table .dim td {
 	opacity: 0.5;
 }
