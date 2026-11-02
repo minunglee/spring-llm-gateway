@@ -58,7 +58,7 @@
 		</div>
 		<div class="card block-body table-wrap">
 			<table class="admin-table">
-				<thead><tr><th>사이트</th><th>오늘</th><th>7일</th><th>30일</th></tr></thead>
+				<thead><tr><th>사이트</th><th class="num">오늘</th><th class="num">7일</th><th class="num">30일</th></tr></thead>
 				<tbody>
 				<tr th:with="v=${cloudVisits}">
 					<td>minunglee.cloud</td>
@@ -110,7 +110,7 @@
 				</dl>
 				<div class="table-wrap" th:if="${!c.recentRuns().isEmpty()}">
 					<table class="admin-table">
-						<thead><tr><th>시작</th><th>걸린 시간</th><th>API 호출</th><th>새·바뀐 거래</th><th>실패</th><th>비고</th></tr></thead>
+						<thead><tr><th>시작</th><th class="num">걸린 시간</th><th class="num">API 호출</th><th class="num">새·바뀐 거래</th><th class="num">실패</th><th>비고</th></tr></thead>
 						<tbody>
 						<tr th:each="r : ${c.recentRuns()}">
 							<td th:text="${r.startedText()}">시작</td>
@@ -143,7 +143,7 @@
 		<div class="card block-body table-wrap">
 			<table class="admin-table">
 				<thead>
-				<tr><th>날짜</th><th>요청</th><th>초대코드</th><th>차단·실패</th><th>비용</th><th class="bar-col"></th></tr>
+				<tr><th>날짜</th><th class="num">요청</th><th class="num">초대코드</th><th class="num">차단·실패</th><th class="num">비용</th><th class="bar-col"></th></tr>
 				</thead>
 				<tbody>
 				<tr th:each="s : ${d.daily()}">
@@ -190,26 +190,27 @@
 			<a th:if="${l.filtered()}" class="link-button" th:href="@{/admin(range=${d.range().param()})} + '#invites'">조건 지우기</a>
 		</form>
 		<div id="invite-list" th:with="l=${d.invites()}">
-		<div class="card block-body table-wrap">
+		<div class="card block-body">
 			<p class="hint list-count" th:text="${l.filtered()} ? |전체 ${l.total()}개 중 ${l.matched()}개| : |전체 ${l.total()}개|">전체 0개</p>
-			<table class="admin-table">
+			<!-- 가로 스크롤 없이 한 화면에 들어가게: 이름은 줄바꿈, 날짜는 연도 생략, 좁은 화면에서는 줄마다 카드로 -->
+			<table class="admin-table invite-table">
 				<thead>
-				<tr><th>이름</th><th>상태</th><th>발급</th><th>만료</th><th>입력</th><th>이력서</th><th>PDF</th><th>AI 사용</th><th>마지막 접속</th><th></th></tr>
+				<tr><th>이름</th><th>상태</th><th>발급</th><th>만료</th><th class="num">입력</th><th class="num">이력서</th><th class="num">PDF</th><th class="num">AI</th><th>마지막 접속</th><th></th></tr>
 				</thead>
 				<tbody>
 				<tr th:if="${l.rows().isEmpty()}"><td colspan="10" class="muted"
 						th:text="${l.filtered()} ? '조건에 맞는 코드가 없습니다.' : '아직 발급한 코드가 없습니다.'">없음</td></tr>
 				<tr th:each="i : ${l.rows()}" th:classappend="${i.revoked()} ? 'dim'">
-					<td><a class="table-link" th:href="@{/admin/codes/{id}(id=${i.id()})}" th:text="${i.label()}">이름</a></td>
-					<td th:text="${i.status()}">상태</td>
-					<td th:text="${i.createdAt()}">발급</td>
-					<td th:text="${i.expiresAt()}">만료</td>
-					<td class="num" th:text="${i.redeems()}">0</td>
-					<td class="num" th:text="${i.resumeViews()}">0</td>
-					<td class="num" th:text="${i.pdfDownloads()}">0</td>
-					<td class="num" th:text="${i.llmRequests()}">0</td>
-					<td th:text="${i.lastAccess()}">-</td>
-					<td><button th:unless="${i.revoked()}" type="button" class="link-button revoke"
+					<td class="name"><a class="table-link" th:href="@{/admin/codes/{id}(id=${i.id()})}" th:text="${i.label()}">이름</a></td>
+					<td data-label="상태" th:text="${i.status()}">상태</td>
+					<td data-label="발급" th:text="${i.createdShort()}" th:title="${i.createdAt()}">발급</td>
+					<td data-label="만료" th:text="${i.expiresShort()}" th:title="${i.expiresAt()}">만료</td>
+					<td data-label="입력" class="num" th:text="${i.redeems()}">0</td>
+					<td data-label="이력서" class="num" th:text="${i.resumeViews()}">0</td>
+					<td data-label="PDF" class="num" th:text="${i.pdfDownloads()}">0</td>
+					<td data-label="AI" class="num" th:text="${i.llmRequests()}">0</td>
+					<td data-label="마지막 접속" th:text="${i.lastAccessShort()}" th:title="${i.lastAccess()}">-</td>
+					<td class="actions"><button th:unless="${i.revoked()}" type="button" class="link-button revoke"
 								th:attr="data-id=${i.id()},data-label=${i.label()}">폐기</button></td>
 				</tr>
 				</tbody>

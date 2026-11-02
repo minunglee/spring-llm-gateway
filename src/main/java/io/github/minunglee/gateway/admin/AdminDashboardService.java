@@ -342,6 +342,21 @@ class AdminDashboardService {
 	record InviteRow(long id, String label, String status, String createdAt, String expiresAt, int dailyLimit,
 			long redeems, long resumeViews, long pdfDownloads, long llmRequests, String lastAccess, boolean revoked) {
 
+		/** 대시보드 표용 발급 시각 (연도 생략 "MM-dd HH:mm", 표가 가로로 넘치지 않게) */
+		public String createdShort() {
+			return createdAt.substring(5);
+		}
+
+		/** 대시보드 표용 만료일 ("MM-dd") */
+		public String expiresShort() {
+			return expiresAt.substring(5, 10);
+		}
+
+		/** 대시보드 표용 마지막 접속 (연도 생략, 기록이 없으면 "-") */
+		public String lastAccessShort() {
+			return lastAccess.length() > 5 ? lastAccess.substring(5) : lastAccess;
+		}
+
 		/** 코드 입력·이력서 열람·PDF 중 하나라도 있으면 접속한 코드 (AI 질문은 코드 입력 뒤에만 가능) */
 		public boolean visited() {
 			return redeems + resumeViews + pdfDownloads > 0;
