@@ -108,7 +108,7 @@ class AdminDashboardIntegrationTest {
 		Instant last = Instant.parse("2026-10-16T02:00:00Z"); // 11:00 KST
 		given(jipdonStats.fetchCollect()).willReturn(Optional.of(new JipdonCollectStatus(true, true, "0 0 */6 * * *", 8000,
 				last, 49152, 12, 4915, List.of(new JipdonCollectStatus.Run(last.minusSeconds(125), last, 2048, 2100, 37, 1,
-						true, 300)))));
+						true, 300)), new JipdonCollectStatus.Deals(1276377, 3149038, 1094724, last))));
 		Cookie admin = mockMvc.perform(post("/admin/login").param("token", "test-admin-token"))
 			.andReturn()
 			.getResponse()
@@ -120,7 +120,9 @@ class AdminDashboardIntegrationTest {
 			.andExpect(content().string(containsString("10/16 11:00")))
 			.andExpect(content().string(containsString("90% (남은 달 4915 / 전체 49152)")))
 			.andExpect(content().string(containsString("2분 5초")))
-			.andExpect(content().string(containsString("하루 한도 도달")));
+			.andExpect(content().string(containsString("하루 한도 도달")))
+			.andExpect(content().string(containsString("5,520,139건 (약 552만 건)")))
+			.andExpect(content().string(containsString("매매 1,276,377 · 전월세 3,149,038 · 단독·다가구 1,094,724 (10/16 11:00 기준)")));
 	}
 
 	@Test

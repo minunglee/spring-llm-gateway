@@ -12,9 +12,10 @@ import java.util.List;
  * @param totalTasks 지역 × 종류 × 보관 개월 수
  * @param refreshDue 최근 달 중 다시 받을 때가 된 일
  * @param missing 아직 한 번도 받지 않은 달
+ * @param deals 쌓인 거래 건수 (jipdon-api가 아직 안 보내면 null)
  */
 public record JipdonCollectStatus(boolean enabled, boolean keyConfigured, String cron, int maxCallsPerRun,
-		Instant lastCollectedAt, int totalTasks, int refreshDue, int missing, List<Run> recentRuns) {
+		Instant lastCollectedAt, int totalTasks, int refreshDue, int missing, List<Run> recentRuns, Deals deals) {
 
 	/** 수집은 6시간마다 돈다. 하루 넘게 새 기록이 없으면 멈춘 것으로 본다 */
 	static final Duration STALE_AFTER = Duration.ofHours(24);
@@ -42,6 +43,31 @@ public record JipdonCollectStatus(boolean enabled, boolean keyConfigured, String
 		public String durationText() {
 			long seconds = Duration.between(startedAt, finishedAt).toSeconds();
 			return seconds < 60 ? seconds + "초" : (seconds / 60) + "분 " + (seconds % 60) + "초";
+		}
+
+	}
+
+	/**
+	 * 쌓인 거래 건수
+	 *
+	 * @param sale 매매 (아파트·연립다세대·오피스텔)
+	 * @param rent 전월세 (아파트·연립다세대·오피스텔)
+	 * @param detached 단독·다가구 매매·전월세
+	 * @param countedAt 센 시각
+	 */
+	public record Deals(long sale, long rent, long detached, Instant countedAt) {
+
+		public long total() {
+			return sale + rent + detached;
+		}
+
+		/** 이력서처럼 "약 552만 건"으로 말할 때 쓰는 만 단위 (버림) */
+		public long totalManwon() {
+			return total() / 10_000;
+		}
+
+		public String countedText() {
+			return countedAt == null ? "-" : TIME.format(countedAt);
 		}
 
 	}

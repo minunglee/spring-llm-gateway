@@ -14,7 +14,7 @@ class JipdonCollectStatusTest {
 	static final Instant NOW = Instant.parse("2026-10-22T03:00:00Z"); // 12:00 KST
 
 	static JipdonCollectStatus status(boolean enabled, boolean key, Instant last, int missing) {
-		return new JipdonCollectStatus(enabled, key, "0 0 */6 * * *", 8000, last, 49152, 0, missing, List.of());
+		return new JipdonCollectStatus(enabled, key, "0 0 */6 * * *", 8000, last, 49152, 0, missing, List.of(), null);
 	}
 
 	@Test

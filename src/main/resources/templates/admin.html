@@ -105,6 +105,13 @@
 						<span th:text="|${c.coveragePercent()}% (남은 달 ${c.missing()} / 전체 ${c.totalTasks()})|">비율</span>
 						<div class="bar"><div class="bar-fill" th:style="|width: ${c.coveragePercent()}%|"></div></div>
 					</dd>
+					<th:block th:if="${c.deals() != null}" th:with="d=${c.deals()}">
+						<dt>쌓인 거래</dt>
+						<dd>
+							<strong th:text="|${#numbers.formatInteger(d.total(), 1, 'COMMA')}건 (약 ${d.totalManwon()}만 건)|">0건</strong>
+							<span class="muted" th:text="|매매 ${#numbers.formatInteger(d.sale(), 1, 'COMMA')} · 전월세 ${#numbers.formatInteger(d.rent(), 1, 'COMMA')} · 단독·다가구 ${#numbers.formatInteger(d.detached(), 1, 'COMMA')} (${d.countedText()} 기준)|">내역</span>
+						</dd>
+					</th:block>
 					<dt>다시 받을 최근 달</dt>
 					<dd th:text="|${c.refreshDue()}건 (다음 실행에서 처리, 한 번에 최대 ${c.maxCallsPerRun()}회 호출)|">0</dd>
 				</dl>
